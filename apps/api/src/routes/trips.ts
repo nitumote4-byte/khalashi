@@ -25,6 +25,9 @@ const createBody = z.object({
   departAt: z.string().min(1),
   seatsTotal: z.number().int(),
   fareInr: z.number().int(),
+  carModel: z.string().min(1).max(80),
+  numberPlate: z.string().min(1).max(32),
+  carColor: z.string().min(1).max(40),
 });
 
 const searchQuery = z.object({
@@ -70,6 +73,9 @@ tripsRouter.post("/trips", requireAuth, tripPostLimit, async (req, res) => {
       departAt: body.departAt,
       seatsTotal: body.seatsTotal,
       fareInr: body.fareInr,
+      carModel: body.carModel,
+      numberPlate: body.numberPlate,
+      carColor: body.carColor,
     });
     res.status(201).json({ ok: true, trip });
   } catch (err) {

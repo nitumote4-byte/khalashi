@@ -11,7 +11,7 @@ Node (Express + TypeScript) API for Khalashi — auth + trips + bookings + soft-
 | POST | `/auth/otp/verify` | upserts user in Postgres; returns Bearer token |
 | GET | `/auth/me` | Bearer |
 | POST | `/auth/logout` | Bearer |
-| POST | `/trips` | Offer a ride — rate limited + spam guards |
+| POST | `/trips` | Offer a ride — `{ origin, destination, departAt, seatsTotal, fareInr, carModel, numberPlate, carColor }` — rate limited + spam guards |
 | GET | `/trips/mine` | Driver trips |
 | GET | `/trips/search` | `origin`, `destination`, `date=YYYY-MM-DD` — rate limited |
 | GET | `/trips/:id` | Detail |

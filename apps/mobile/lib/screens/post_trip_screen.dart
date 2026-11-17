@@ -21,6 +21,9 @@ class _PostTripScreenState extends State<PostTripScreen> {
   final _origin = TextEditingController();
   final _destination = TextEditingController();
   final _fare = TextEditingController(text: '450');
+  final _carModel = TextEditingController();
+  final _numberPlate = TextEditingController();
+  final _carColor = TextEditingController();
   DateTime _depart = DateTime.now().add(const Duration(days: 1, hours: 1)).copyWith(
         second: 0,
         millisecond: 0,
@@ -35,6 +38,9 @@ class _PostTripScreenState extends State<PostTripScreen> {
     _origin.dispose();
     _destination.dispose();
     _fare.dispose();
+    _carModel.dispose();
+    _numberPlate.dispose();
+    _carColor.dispose();
     super.dispose();
   }
 
@@ -67,12 +73,19 @@ class _PostTripScreenState extends State<PostTripScreen> {
     final origin = _origin.text.trim();
     final destination = _destination.text.trim();
     final fare = int.tryParse(_fare.text.trim());
+    final carModel = _carModel.text.trim();
+    final numberPlate = _numberPlate.text.trim();
+    final carColor = _carColor.text.trim();
     if (origin.isEmpty || destination.isEmpty) {
       setState(() => _error = l10n.errorCitiesRequired);
       return;
     }
     if (fare == null || fare < 0) {
       setState(() => _error = l10n.errorInvalidFare);
+      return;
+    }
+    if (carModel.isEmpty || numberPlate.isEmpty || carColor.isEmpty) {
+      setState(() => _error = l10n.errorVehicleRequired);
       return;
     }
     if (!_depart.isAfter(DateTime.now())) {
@@ -91,6 +104,9 @@ class _PostTripScreenState extends State<PostTripScreen> {
         departAt: _depart,
         seatsTotal: _seats,
         fareInr: fare,
+        carModel: carModel,
+        numberPlate: numberPlate,
+        carColor: carColor,
       );
       if (!mounted) return;
       await Navigator.of(context).pushReplacement(
@@ -180,6 +196,26 @@ class _PostTripScreenState extends State<PostTripScreen> {
                     prefixText: '₹ ',
                     helperText: l10n.youSetFare,
                   ),
+                ),
+                const SizedBox(height: 20),
+                Text(l10n.vehicleDetails, style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _carModel,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(labelText: l10n.carModel),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _numberPlate,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(labelText: l10n.numberPlate),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _carColor,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(labelText: l10n.carColor),
                 ),
                 const SizedBox(height: 16),
                 Text(

@@ -126,6 +126,9 @@ type BookingWithTrip = BookingRow & {
   t_seats_total: number;
   t_seats_left: number;
   t_fare_inr: number;
+  t_car_model: string;
+  t_number_plate: string;
+  t_car_color: string;
   t_status: TripRow["status"];
   t_created_at: Date;
   t_updated_at: Date;
@@ -143,6 +146,9 @@ function tripFromJoined(row: BookingWithTrip): TripRow {
     seats_total: row.t_seats_total,
     seats_left: row.t_seats_left,
     fare_inr: row.t_fare_inr,
+    car_model: row.t_car_model,
+    number_plate: row.t_number_plate,
+    car_color: row.t_car_color,
     status: row.t_status,
     created_at: row.t_created_at,
     updated_at: row.t_updated_at,
@@ -157,6 +163,7 @@ const BOOKING_TRIP_SELECT = `
   t.destination AS t_destination, t.origin_normalized AS t_origin_normalized,
   t.destination_normalized AS t_destination_normalized, t.depart_at AS t_depart_at,
   t.seats_total AS t_seats_total, t.seats_left AS t_seats_left, t.fare_inr AS t_fare_inr,
+  t.car_model AS t_car_model, t.number_plate AS t_number_plate, t.car_color AS t_car_color,
   t.status AS t_status, t.created_at AS t_created_at, t.updated_at AS t_updated_at
 `;
 

@@ -43,10 +43,10 @@ PY
 echo "== duplicate open trip same route/day → SPAM_DUPLICATE_TRIP =="
 curl -sf -X POST "$BASE/trips" -H "Authorization: Bearer $DRV_TOKEN" \
   -H 'Content-Type: application/json' \
-  -d "{\"origin\":\"Nagpur\",\"destination\":\"Indore\",\"departAt\":\"$DEPART\",\"seatsTotal\":2,\"fareInr\":500}" >/dev/null
+  -d "{\"origin\":\"Nagpur\",\"destination\":\"Indore\",\"departAt\":\"$DEPART\",\"seatsTotal\":2,\"fareInr\":500,\"carModel\":\"Baleno\",\"numberPlate\":\"MH31AA1111\",\"carColor\":\"Blue\"}" >/dev/null
 DUP_CODE=$(curl -s -o /tmp/dup.json -w '%{http_code}' -X POST "$BASE/trips" \
   -H "Authorization: Bearer $DRV_TOKEN" -H 'Content-Type: application/json' \
-  -d "{\"origin\":\"Nagpur\",\"destination\":\"Indore\",\"departAt\":\"$DEPART\",\"seatsTotal\":2,\"fareInr\":500}")
+  -d "{\"origin\":\"Nagpur\",\"destination\":\"Indore\",\"departAt\":\"$DEPART\",\"seatsTotal\":2,\"fareInr\":500,\"carModel\":\"Baleno\",\"numberPlate\":\"MH31AA1111\",\"carColor\":\"Blue\"}")
 test "$DUP_CODE" = "409"
 python3 -c 'import json; d=json.load(open("/tmp/dup.json")); assert d.get("code")=="SPAM_DUPLICATE_TRIP", d'
 echo "SPAM_DUPLICATE_TRIP OK"
@@ -59,10 +59,17 @@ PY
 )
 SOON_CODE=$(curl -s -o /tmp/soon.json -w '%{http_code}' -X POST "$BASE/trips" \
   -H "Authorization: Bearer $DRV_TOKEN" -H 'Content-Type: application/json' \
-  -d "{\"origin\":\"Goa\",\"destination\":\"Hubli\",\"departAt\":\"$SOON\",\"seatsTotal\":1,\"fareInr\":200}")
+  -d "{\"origin\":\"Goa\",\"destination\":\"Hubli\",\"departAt\":\"$SOON\",\"seatsTotal\":1,\"fareInr\":200,\"carModel\":\"Alto\",\"numberPlate\":\"GA01BB2222\",\"carColor\":\"Red\"}")
 test "$SOON_CODE" = "400"
 python3 -c 'import json; d=json.load(open("/tmp/soon.json")); assert d.get("code")=="DEPART_TOO_SOON", d'
 echo "DEPART_TOO_SOON OK"
+
+echo "== missing vehicle details → VALIDATION_ERROR =="
+MISS_CODE=$(curl -s -o /tmp/miss_vehicle.json -w '%{http_code}' -X POST "$BASE/trips" \
+  -H "Authorization: Bearer $DRV_TOKEN" -H 'Content-Type: application/json' \
+  -d "{\"origin\":\"Goa\",\"destination\":\"Hubli\",\"departAt\":\"$DEPART\",\"seatsTotal\":1,\"fareInr\":200}")
+test "$MISS_CODE" = "400"
+echo "vehicle required OK"
 
 echo "== unauthorized has code =="
 UNAUTH=$(curl -s -o /tmp/unauth.json -w '%{http_code}' "$BASE/trips/mine")

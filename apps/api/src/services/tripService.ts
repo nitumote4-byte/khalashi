@@ -15,6 +15,9 @@ export type TripRow = {
   seats_total: number;
   seats_left: number;
   fare_inr: number;
+  car_model: string;
+  number_plate: string;
+  car_color: string;
   status: "open" | "cancelled" | "completed";
   created_at: Date;
   updated_at: Date;
@@ -25,6 +28,24 @@ export type TripRow = {
 const MAX_SEATS = 8;
 const MAX_FARE_INR = 50_000;
 const MAX_DEPART_DAYS = 90;
+const MAX_CAR_MODEL = 80;
+const MAX_NUMBER_PLATE = 32;
+const MAX_CAR_COLOR = 40;
+
+function normalizeVehicleField(value: string, label: string, maxLen: number): string {
+  const trimmed = value.trim().replace(/\s+/g, " ");
+  if (!trimmed) {
+    throw httpError(400, `${label} is required`, ErrorCodes.VALIDATION_ERROR);
+  }
+  if (trimmed.length > maxLen) {
+    throw httpError(
+      400,
+      `${label} must be at most ${maxLen} characters`,
+      ErrorCodes.VALIDATION_ERROR
+    );
+  }
+  return trimmed;
+}
 
 export function mapTrip(row: TripRow) {
   return {
@@ -36,6 +57,9 @@ export function mapTrip(row: TripRow) {
     seatsTotal: row.seats_total,
     seatsLeft: row.seats_left,
     fareInr: row.fare_inr,
+    carModel: row.car_model,
+    numberPlate: row.number_plate,
+    carColor: row.car_color,
     status: row.status,
     driverDisplayName: row.driver_display_name ?? null,
     driverPhone: row.driver_phone ?? null,
@@ -51,6 +75,9 @@ export async function createTrip(input: {
   departAt: string;
   seatsTotal: number;
   fareInr: number;
+  carModel: string;
+  numberPlate: string;
+  carColor: string;
 }) {
   const origin = displayCity(input.origin);
   const destination = displayCity(input.destination);
@@ -105,6 +132,14 @@ export async function createTrip(input: {
     );
   }
 
+  const carModel = normalizeVehicleField(input.carModel, "Car model", MAX_CAR_MODEL);
+  const numberPlate = normalizeVehicleField(
+    input.numberPlate,
+    "Number plate",
+    MAX_NUMBER_PLATE
+  ).toUpperCase();
+  const carColor = normalizeVehicleField(input.carColor, "Car color", MAX_CAR_COLOR);
+
   // Spam guard: cap open trips created by this driver in the last 24h
   const dayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
   const countResult = await pool.query<{ count: string }>(
@@ -147,8 +182,9 @@ export async function createTrip(input: {
   const { rows } = await pool.query<TripRow>(
     `INSERT INTO trips (
        driver_id, origin, destination, origin_normalized, destination_normalized,
-       depart_at, seats_total, seats_left, fare_inr, status
-     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $8, 'open')
+       depart_at, seats_total, seats_left, fare_inr,
+       car_model, number_plate, car_color, status
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, 'open')
      RETURNING *`,
     [
       input.driverId,
@@ -159,6 +195,9 @@ export async function createTrip(input: {
       departAt.toISOString(),
       input.seatsTotal,
       input.fareInr,
+      carModel,
+      numberPlate,
+      carColor,
     ]
   );
 

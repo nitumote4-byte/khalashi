@@ -43,6 +43,9 @@ class ApiClient {
     required DateTime departAt,
     required int seatsTotal,
     required int fareInr,
+    required String carModel,
+    required String numberPlate,
+    required String carColor,
   }) async {
     final res = await http.post(
       Uri.parse('$baseUrl/trips'),
@@ -53,6 +56,9 @@ class ApiClient {
         'departAt': departAt.toUtc().toIso8601String(),
         'seatsTotal': seatsTotal,
         'fareInr': fareInr,
+        'carModel': carModel,
+        'numberPlate': numberPlate,
+        'carColor': carColor,
       }),
     );
     final body = await _decode(res);

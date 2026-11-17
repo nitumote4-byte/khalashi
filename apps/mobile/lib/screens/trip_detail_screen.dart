@@ -67,6 +67,11 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     Text('${trip.seatsLeft} ${l10n.seatsLeft} · ${formatInr(trip.fareInr)}/${l10n.seat}'),
                     if (trip.driverDisplayName != null)
                       Text('${l10n.driver}: ${trip.driverDisplayName}'),
+                    const SizedBox(height: 12),
+                    Text(l10n.vehicleDetails, style: Theme.of(context).textTheme.titleSmall),
+                    Text('${l10n.carModel}: ${trip.carModel}'),
+                    Text('${l10n.numberPlate}: ${trip.numberPlate}'),
+                    Text('${l10n.carColor}: ${trip.carColor}'),
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(12),

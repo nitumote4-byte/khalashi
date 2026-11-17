@@ -46,9 +46,15 @@ DEST="Mumbai $SUFFIX"
 echo "== create trip =="
 TRIP=$(curl -sf -X POST "$BASE/trips" -H "Authorization: Bearer $DRV_TOKEN" \
   -H 'Content-Type: application/json' \
-  -d "{\"origin\":\"Pune\",\"destination\":\"$DEST\",\"departAt\":\"$DEPART\",\"seatsTotal\":2,\"fareInr\":450}")
+  -d "{\"origin\":\"Pune\",\"destination\":\"$DEST\",\"departAt\":\"$DEPART\",\"seatsTotal\":2,\"fareInr\":450,\"carModel\":\"Swift Dzire\",\"numberPlate\":\"MH12AB1234\",\"carColor\":\"White\"}")
 TRIP_ID=$(echo "$TRIP" | jq_get "d['trip']['id']")
-echo "trip=$TRIP_ID"
+CAR_MODEL=$(echo "$TRIP" | jq_get "d['trip']['carModel']")
+NUMBER_PLATE=$(echo "$TRIP" | jq_get "d['trip']['numberPlate']")
+CAR_COLOR=$(echo "$TRIP" | jq_get "d['trip']['carColor']")
+test "$CAR_MODEL" = "Swift Dzire"
+test "$NUMBER_PLATE" = "MH12AB1234"
+test "$CAR_COLOR" = "White"
+echo "trip=$TRIP_ID vehicle=$CAR_MODEL $NUMBER_PLATE $CAR_COLOR"
 
 echo "== search =="
 DEST_Q=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$DEST")
@@ -73,11 +79,13 @@ PY
 )
 curl -s -X POST "$BASE/trips" -H "Authorization: Bearer $DRV_TOKEN" \
   -H 'Content-Type: application/json' \
-  -d "{\"origin\":\"Pune\",\"destination\":\"Mumbai\",\"departAt\":\"$ALIAS_DEPART\",\"seatsTotal\":1,\"fareInr\":400}" >/dev/null || true
+  -d "{\"origin\":\"Pune\",\"destination\":\"Mumbai\",\"departAt\":\"$ALIAS_DEPART\",\"seatsTotal\":1,\"fareInr\":400,\"carModel\":\"Innova\",\"numberPlate\":\"MH14CD5678\",\"carColor\":\"Silver\"}" >/dev/null || true
 ALIAS=$(curl -sf "$BASE/trips/search?origin=Pune&destination=Bombay&date=$ALIAS_DATE" \
   -H "Authorization: Bearer $TRV_TOKEN")
 ALIAS_COUNT=$(echo "$ALIAS" | jq_get "len(d['trips'])")
 test "$ALIAS_COUNT" -ge 1
+# Vehicle fields present on search results
+echo "$ALIAS" | jq_get "all('carModel' in t and 'numberPlate' in t and 'carColor' in t for t in d['trips'])" | grep -qi true
 
 echo "== book 1 seat window =="
 BOOK=$(curl -sf -X POST "$BASE/trips/$TRIP_ID/bookings" -H "Authorization: Bearer $TRV_TOKEN" \
@@ -126,10 +134,13 @@ test "$LEFT2" = "1"
 echo "== cancel trip cascades =="
 TRIP2=$(curl -sf -X POST "$BASE/trips" -H "Authorization: Bearer $DRV_TOKEN" \
   -H 'Content-Type: application/json' \
-  -d "{\"origin\":\"Delhi\",\"destination\":\"Jaipur\",\"departAt\":\"$DEPART\",\"seatsTotal\":3,\"fareInr\":300}")
+  -d "{\"origin\":\"Delhi\",\"destination\":\"Jaipur\",\"departAt\":\"$DEPART\",\"seatsTotal\":3,\"fareInr\":300,\"carModel\":\"XUV700\",\"numberPlate\":\"RJ14EF9012\",\"carColor\":\"Black\"}")
 TRIP2_ID=$(echo "$TRIP2" | jq_get "d['trip']['id']")
 curl -sf -X POST "$BASE/trips/$TRIP2_ID/bookings" -H "Authorization: Bearer $TRV_TOKEN" \
   -H 'Content-Type: application/json' -d '{"seats":2,"seatPreference":"any"}' >/dev/null
+# Booking payload includes trip vehicle details
+BOOK_DETAIL=$(curl -sf "$BASE/bookings/mine" -H "Authorization: Bearer $TRV_TOKEN")
+echo "$BOOK_DETAIL" | jq_get "any(b.get('trip') and b['trip'].get('carModel')=='XUV700' for b in d['bookings'])" | grep -qi true
 CANCEL=$(curl -sf -X POST "$BASE/trips/$TRIP2_ID/cancel" -H "Authorization: Bearer $DRV_TOKEN" \
   -H 'Content-Type: application/json' -d '{}')
 STATUS=$(echo "$CANCEL" | jq_get "d['trip']['status']")
