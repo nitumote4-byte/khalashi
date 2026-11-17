@@ -5,25 +5,14 @@ import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
 import 'my_bookings_screen.dart';
 import 'my_trips_screen.dart';
-import 'phone_screen.dart';
 import 'post_trip_screen.dart';
+import 'profile_screen.dart';
 import 'search_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.sessionStore});
 
   final SessionStore sessionStore;
-
-  Future<void> _logout(BuildContext context) async {
-    await sessionStore.clearSession();
-    if (!context.mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(
-        builder: (_) => PhoneScreen(sessionStore: sessionStore),
-      ),
-      (_) => false,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +46,16 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: l10n.logout,
-                      onPressed: () => _logout(context),
-                      icon: const Icon(Icons.logout),
+                      tooltip: l10n.profile,
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                ProfileScreen(sessionStore: sessionStore),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.person_outline),
                     ),
                   ],
                 ),

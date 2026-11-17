@@ -175,4 +175,87 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorInvalidFare => 'Enter a valid fare';
   @override
   String get errorPastDeparture => 'Departure must be in the future';
+  @override
+  String get helpTitle => 'Help & safety';
+  @override
+  String get helpSubtitle => 'Cash, cancel rules, support';
+  @override
+  String get cashHowTitle => 'How cash works';
+  @override
+  String get cashHowBody =>
+      'You pay the driver in cash on the trip. Khalashi never takes, holds, or refunds money.';
+  @override
+  String get seatPrefHelpTitle => 'Seat preference';
+  @override
+  String get seatPrefHelpBody =>
+      'Front / Window / Any is a request only — not a guaranteed seat map.';
+  @override
+  String get cancelHelpTitle => 'Free cancel until start';
+  @override
+  String get cancelHelpBody =>
+      'Driver or traveller can cancel free until the trip starts. After start, cancel is not available in-app. No cash penalty in the app.';
+  @override
+  String get safetyTipsTitle => 'Safety tips';
+  @override
+  String get safetyTip1 =>
+      "1. Share route, time, and the other person's phone with family or a friend.";
+  @override
+  String get safetyTip2 => '2. Meet in a public, well-lit place when you can.';
+  @override
+  String get safetyTip3 =>
+      '3. Confirm booking details in the app before you get in.';
+  @override
+  String get safetyTip4 =>
+      '4. Pay the listed cash fare; agree clearly before departure.';
+  @override
+  String get safetyTip5 =>
+      '5. Cancel free until the trip starts if you feel uncomfortable.';
+  @override
+  String get safetyTip6 =>
+      '6. If you feel unsafe, leave and call emergency services.';
+  @override
+  String get emergencyLine =>
+      'If you are in immediate danger, call police / 112. Khalashi support helps with bookings — it is not an emergency response service.';
+  @override
+  String get disclaimerTitle => 'Important';
+  @override
+  String get disclaimerBody =>
+      'Khalashi is a carpool marketplace, not a taxi. Users are not identity-verified (phone OTP only). Khalashi does not verify licences or vehicles and does not provide liability insurance. Seat preference is a request. Cash disputes are between the people on the trip.';
+  @override
+  String get operatorLine => 'Operated with Nitin Mote Tours & Travel.';
+  @override
+  String get supportTitle => 'Khalashi support';
+  @override
+  String get supportHours => 'Business hours — for booking help';
+  @override
+  String get supportWhatsApp => 'WhatsApp';
+  @override
+  String get supportPhone => 'Phone';
+  @override
+  String get copyWhatsApp => 'Copy WhatsApp number';
+  @override
+  String get copyPhone => 'Copy phone number';
+  @override
+  String get copied => 'Copied';
+  @override
+  String get supportStubNote =>
+      'Replace stub numbers with your live ops WhatsApp/phone before launch.';
+  @override
+  String get supportOpenFailed => 'Could not open. Copy the number instead.';
+  @override
+  String get needHelpBooking => 'Need help with this booking?';
+  @override
+  String get safetyAndTerms => 'Safety & terms';
+  @override
+  String get bookMicroDisclaimer =>
+      'Cash on trip · users not KYC-verified · not insured by Khalashi';
+  @override
+  String get errorGeneric => 'Something went wrong';
+  @override
+  String get errorNetworkHint => 'Check your connection and try again.';
+  @override
+  String get errorRateLimited =>
+      'Too many requests. Wait a moment and try again.';
+  @override
+  String get errorUnauthorized => 'Please sign in again.';
 }

@@ -6,6 +6,8 @@ import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
 import '../utils/format.dart';
+import '../widgets/async_state.dart';
+import 'help_screen.dart';
 
 class BookingDetailScreen extends StatefulWidget {
   const BookingDetailScreen({
@@ -76,15 +78,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(snap.error.toString()),
-                  OutlinedButton(onPressed: _reload, child: Text(l10n.retry)),
-                ],
-              ),
-            );
+            return ErrorState(error: snap.error!, onRetry: _reload);
           }
           final b = snap.data!;
           final trip = b.trip;
@@ -117,12 +111,29 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               ],
               const SizedBox(height: 16),
               Text(l10n.cashReminder, style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(height: 8),
+              Text(
+                l10n.bookMicroDisclaimer,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: KhalashiColors.dusk.withOpacity(0.75),
+                    ),
+              ),
               const SizedBox(height: 24),
               if (b.canCancel)
                 OutlinedButton(
                   onPressed: _cancelling ? null : _cancel,
                   child: Text(l10n.cancelBooking),
                 ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => HelpScreen(bookingRef: b.bookingRef),
+                    ),
+                  );
+                },
+                child: Text(l10n.needHelpBooking),
+              ),
             ],
           );
         },

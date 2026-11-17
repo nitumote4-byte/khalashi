@@ -1,5 +1,5 @@
 import { pool } from "../db/pool";
-import { httpError } from "../utils/errors";
+import { ErrorCodes, httpError } from "../utils/errors";
 import { getTripById, lockTrip, mapTrip, type TripRow } from "./tripService";
 
 export type SeatPreference = "front" | "window" | "any";
@@ -47,10 +47,14 @@ export async function createBooking(input: {
   seatPreference: SeatPreference;
 }) {
   if (!Number.isInteger(input.seats) || input.seats < 1) {
-    throw httpError(400, "Seats must be at least 1");
+    throw httpError(400, "Seats must be at least 1", ErrorCodes.VALIDATION_ERROR);
   }
   if (!["front", "window", "any"].includes(input.seatPreference)) {
-    throw httpError(400, "Seat preference must be front, window, or any");
+    throw httpError(
+      400,
+      "Seat preference must be front, window, or any",
+      ErrorCodes.VALIDATION_ERROR
+    );
   }
 
   const client = await pool.connect();
@@ -59,16 +63,16 @@ export async function createBooking(input: {
     const trip = await lockTrip(client, input.tripId);
 
     if (trip.driver_id === input.travellerId) {
-      throw httpError(400, "Drivers cannot book their own trip");
+      throw httpError(400, "Drivers cannot book their own trip", ErrorCodes.VALIDATION_ERROR);
     }
     if (trip.status !== "open") {
-      throw httpError(400, "Trip is not open for booking");
+      throw httpError(400, "Trip is not open for booking", ErrorCodes.TRIP_NOT_OPEN);
     }
     if (new Date(trip.depart_at).getTime() <= Date.now()) {
-      throw httpError(400, "Trip has already started");
+      throw httpError(400, "Trip has already started", ErrorCodes.TRIP_STARTED);
     }
     if (trip.seats_left < input.seats) {
-      throw httpError(409, "Seats just filled", "SEATS_FULL");
+      throw httpError(409, "Seats just filled", ErrorCodes.SEATS_FULL);
     }
 
     const cashTotal = trip.fare_inr * input.seats;
@@ -88,10 +92,20 @@ export async function createBooking(input: {
       [input.tripId, input.seats]
     );
     if (!updatedTrip.rows[0]) {
-      throw httpError(409, "Seats just filled", "SEATS_FULL");
+      throw httpError(409, "Seats just filled", ErrorCodes.SEATS_FULL);
     }
 
     await client.query("COMMIT");
+    console.log(
+      JSON.stringify({
+        level: "info",
+        msg: "booking_created",
+        bookingId: bookingResult.rows[0].id,
+        tripId: input.tripId,
+        travellerId: input.travellerId,
+        seats: input.seats,
+      })
+    );
     return mapBooking(bookingResult.rows[0], mapTrip(updatedTrip.rows[0]));
   } catch (err) {
     await client.query("ROLLBACK");
@@ -162,7 +176,7 @@ export async function listMyBookings(travellerId: string) {
 export async function listBookingsForTrip(tripId: string, driverId: string) {
   const trip = await getTripById(tripId);
   if (trip.driverId !== driverId) {
-    throw httpError(403, "Only the driver can view trip bookings");
+    throw httpError(403, "Only the driver can view trip bookings", ErrorCodes.FORBIDDEN);
   }
 
   const { rows } = await pool.query<BookingRow>(
@@ -188,10 +202,10 @@ export async function getBookingById(bookingId: string, userId: string) {
      WHERE b.id = $1`,
     [bookingId]
   );
-  if (!rows[0]) throw httpError(404, "Booking not found");
+  if (!rows[0]) throw httpError(404, "Booking not found", ErrorCodes.NOT_FOUND);
   const row = rows[0];
   if (row.traveller_id !== userId && row.t_driver_id !== userId) {
-    throw httpError(403, "Not allowed to view this booking");
+    throw httpError(403, "Not allowed to view this booking", ErrorCodes.FORBIDDEN);
   }
   return mapBooking(row, mapTrip(tripFromJoined(row)));
 }
@@ -209,29 +223,29 @@ export async function cancelBooking(input: {
       `SELECT * FROM bookings WHERE id = $1 FOR UPDATE`,
       [input.bookingId]
     );
-    if (!rows[0]) throw httpError(404, "Booking not found");
+    if (!rows[0]) throw httpError(404, "Booking not found", ErrorCodes.NOT_FOUND);
     const booking = rows[0];
 
     if (booking.status !== "confirmed") {
-      throw httpError(400, "Booking is already cancelled");
+      throw httpError(400, "Booking is already cancelled", ErrorCodes.VALIDATION_ERROR);
     }
 
     const trip = await lockTrip(client, booking.trip_id);
     const isTraveller = booking.traveller_id === input.userId;
     const isDriver = trip.driver_id === input.userId;
     if (!isTraveller && !isDriver) {
-      throw httpError(403, "Not allowed to cancel this booking");
+      throw httpError(403, "Not allowed to cancel this booking", ErrorCodes.FORBIDDEN);
     }
 
     if (new Date(trip.depart_at).getTime() <= Date.now()) {
-      throw httpError(400, "Cannot cancel after trip start", "TRIP_STARTED");
+      throw httpError(400, "Cannot cancel after trip start", ErrorCodes.TRIP_STARTED);
     }
 
     if (input.asRole === "driver" && !isDriver) {
-      throw httpError(403, "Only the driver can cancel as driver");
+      throw httpError(403, "Only the driver can cancel as driver", ErrorCodes.FORBIDDEN);
     }
     if (input.asRole === "traveller" && !isTraveller) {
-      throw httpError(403, "Only the traveller can cancel as traveller");
+      throw httpError(403, "Only the traveller can cancel as traveller", ErrorCodes.FORBIDDEN);
     }
 
     const by: "traveller" | "driver" =

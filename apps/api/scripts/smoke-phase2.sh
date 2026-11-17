@@ -39,18 +39,45 @@ print((datetime.now(ist) + timedelta(days=2)).strftime("%Y-%m-%d"))
 PY
 )
 
+# Unique dest so soft-launch duplicate-route guard doesn't fail on re-runs
+SUFFIX=$(date +%s)
+DEST="Mumbai $SUFFIX"
+
 echo "== create trip =="
 TRIP=$(curl -sf -X POST "$BASE/trips" -H "Authorization: Bearer $DRV_TOKEN" \
   -H 'Content-Type: application/json' \
-  -d "{\"origin\":\"Pune\",\"destination\":\"Mumbai\",\"departAt\":\"$DEPART\",\"seatsTotal\":2,\"fareInr\":450}")
+  -d "{\"origin\":\"Pune\",\"destination\":\"$DEST\",\"departAt\":\"$DEPART\",\"seatsTotal\":2,\"fareInr\":450}")
 TRIP_ID=$(echo "$TRIP" | jq_get "d['trip']['id']")
 echo "trip=$TRIP_ID"
 
-echo "== search (Bombay alias) =="
-SEARCH=$(curl -sf "$BASE/trips/search?origin=Pune&destination=Bombay&date=$DATE" \
+echo "== search =="
+DEST_Q=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$DEST")
+SEARCH=$(curl -sf "$BASE/trips/search?origin=Pune&destination=$DEST_Q&date=$DATE" \
   -H "Authorization: Bearer $TRV_TOKEN")
 COUNT=$(echo "$SEARCH" | jq_get "len(d['trips'])")
 test "$COUNT" -ge 1
+
+echo "== search Bombay alias =="
+# Separate date offset so it never collides with the unique DEST trip above
+ALIAS_DEPART=$(python3 - <<'PY'
+from datetime import datetime, timedelta, timezone
+ist = timezone(timedelta(hours=5, minutes=30))
+print((datetime.now(ist) + timedelta(days=5)).replace(hour=7, minute=0, second=0, microsecond=0).isoformat())
+PY
+)
+ALIAS_DATE=$(python3 - <<'PY'
+from datetime import datetime, timedelta, timezone
+ist = timezone(timedelta(hours=5, minutes=30))
+print((datetime.now(ist) + timedelta(days=5)).strftime("%Y-%m-%d"))
+PY
+)
+curl -s -X POST "$BASE/trips" -H "Authorization: Bearer $DRV_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d "{\"origin\":\"Pune\",\"destination\":\"Mumbai\",\"departAt\":\"$ALIAS_DEPART\",\"seatsTotal\":1,\"fareInr\":400}" >/dev/null || true
+ALIAS=$(curl -sf "$BASE/trips/search?origin=Pune&destination=Bombay&date=$ALIAS_DATE" \
+  -H "Authorization: Bearer $TRV_TOKEN")
+ALIAS_COUNT=$(echo "$ALIAS" | jq_get "len(d['trips'])")
+test "$ALIAS_COUNT" -ge 1
 
 echo "== book 1 seat window =="
 BOOK=$(curl -sf -X POST "$BASE/trips/$TRIP_ID/bookings" -H "Authorization: Bearer $TRV_TOKEN" \

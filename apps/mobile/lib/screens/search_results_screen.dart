@@ -5,6 +5,7 @@ import '../models/trip.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../utils/format.dart';
+import '../widgets/async_state.dart';
 import 'post_trip_screen.dart';
 import 'trip_detail_screen.dart';
 
@@ -69,45 +70,23 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snap.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(snap.error.toString()),
-                        OutlinedButton(onPressed: _reload, child: Text(l10n.retry)),
-                      ],
-                    ),
-                  );
+                  return ErrorState(error: snap.error!, onRetry: _reload);
                 }
                 final trips = snap.data ?? [];
                 if (trips.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(l10n.noRidesFound, textAlign: TextAlign.center),
-                          const SizedBox(height: 16),
-                          OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(l10n.changeDate),
+                  return EmptyState(
+                    message: l10n.noRidesFound,
+                    icon: Icons.directions_car_outlined,
+                    actionLabel: l10n.offerRide,
+                    onAction: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => PostTripScreen(
+                            sessionStore: widget.sessionStore,
                           ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => PostTripScreen(
-                                    sessionStore: widget.sessionStore,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Text(l10n.offerRide),
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
                 }
                 return RefreshIndicator(

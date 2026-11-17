@@ -1,11 +1,12 @@
 /**
- * Mock OTP + session store for Phase 1–2.
+ * Mock OTP + session store for Phase 1–3.
  * Users are upserted into Postgres so trips/bookings can FK to users.id.
  * OTP challenges and sessions stay in-memory (swap later for production).
  */
 import { randomBytes } from "crypto";
 import { env } from "../config/env";
 import { pool } from "../db/pool";
+import { ErrorCodes, httpError } from "../utils/errors";
 import { generateOtpCode, hashOtp, sendOtp, verifyOtpHash } from "./otpProvider";
 
 type Challenge = {
@@ -34,27 +35,12 @@ const sessions = new Map<string, Session>();
 const usersById = new Map<string, AuthUser>();
 const usersByPhone = new Map<string, AuthUser>();
 
-const RATE_WINDOW_MS = 60_000;
-const sendTimestamps = new Map<string, number[]>();
-
-function normalizePhone(raw: string): string {
+export function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, "");
   if (digits.length === 10) return `+91${digits}`;
   if (digits.length === 12 && digits.startsWith("91")) return `+${digits}`;
   if (raw.startsWith("+91") && digits.length === 12) return `+${digits}`;
-  throw Object.assign(new Error("Invalid Indian mobile number"), { status: 400 });
-}
-
-function assertRateLimit(phone: string) {
-  const now = Date.now();
-  const recent = (sendTimestamps.get(phone) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
-  if (recent.length >= 3) {
-    throw Object.assign(new Error("Too many OTP requests. Try again shortly."), {
-      status: 429,
-    });
-  }
-  recent.push(now);
-  sendTimestamps.set(phone, recent);
+  throw httpError(400, "Invalid Indian mobile number", ErrorCodes.OTP_INVALID_PHONE);
 }
 
 function cacheUser(user: AuthUser) {
@@ -110,7 +96,6 @@ async function ensureUser(phone: string): Promise<AuthUser> {
 
 export async function requestOtp(phoneRaw: string) {
   const phone = normalizePhone(phoneRaw);
-  assertRateLimit(phone);
 
   const code = generateOtpCode();
   const codeHash = hashOtp(code);
@@ -118,6 +103,15 @@ export async function requestOtp(phoneRaw: string) {
 
   challenges.set(phone, { phone, codeHash, expiresAt, attemptCount: 0 });
   const sendResult = await sendOtp(phone, code);
+
+  console.log(
+    JSON.stringify({
+      level: "info",
+      msg: "otp_requested",
+      phone,
+      provider: sendResult.provider,
+    })
+  );
 
   return {
     phone,
@@ -132,22 +126,28 @@ export async function verifyOtp(phoneRaw: string, code: string) {
   const challenge = challenges.get(phone);
 
   if (!challenge) {
-    throw Object.assign(new Error("No OTP pending for this number. Request a new code."), {
-      status: 400,
-    });
+    throw httpError(
+      400,
+      "No OTP pending for this number. Request a new code.",
+      ErrorCodes.OTP_NONE_PENDING
+    );
   }
   if (Date.now() > challenge.expiresAt) {
     challenges.delete(phone);
-    throw Object.assign(new Error("OTP expired. Request a new code."), { status: 400 });
+    throw httpError(400, "OTP expired. Request a new code.", ErrorCodes.OTP_EXPIRED);
   }
   if (challenge.attemptCount >= 5) {
     challenges.delete(phone);
-    throw Object.assign(new Error("Too many attempts. Request a new code."), { status: 429 });
+    throw httpError(
+      429,
+      "Too many attempts. Request a new code.",
+      ErrorCodes.OTP_TOO_MANY_ATTEMPTS
+    );
   }
 
   challenge.attemptCount += 1;
   if (!verifyOtpHash(code.trim(), challenge.codeHash)) {
-    throw Object.assign(new Error("Incorrect OTP."), { status: 401 });
+    throw httpError(401, "Incorrect OTP.", ErrorCodes.OTP_INCORRECT);
   }
 
   challenges.delete(phone);
@@ -155,6 +155,15 @@ export async function verifyOtp(phoneRaw: string, code: string) {
   const token = randomBytes(32).toString("hex");
   const expiresAt = Date.now() + env.SESSION_TTL_SECONDS * 1000;
   sessions.set(token, { token, userId: user.id, phone: user.phone, expiresAt });
+
+  console.log(
+    JSON.stringify({
+      level: "info",
+      msg: "otp_verified",
+      phone,
+      userId: user.id,
+    })
+  );
 
   return {
     token,
@@ -199,7 +208,7 @@ export async function updateDisplayName(userId: string, displayName: string | nu
     [userId, displayName]
   );
   if (!rows[0]) {
-    throw Object.assign(new Error("User not found"), { status: 404 });
+    throw httpError(404, "User not found", ErrorCodes.NOT_FOUND);
   }
   const user: AuthUser = {
     id: rows[0].id,
@@ -225,7 +234,7 @@ export async function updateLanguage(userId: string, language: "en" | "hi") {
     [userId, language]
   );
   if (!rows[0]) {
-    throw Object.assign(new Error("User not found"), { status: 404 });
+    throw httpError(404, "User not found", ErrorCodes.NOT_FOUND);
   }
   const user: AuthUser = {
     id: rows[0].id,

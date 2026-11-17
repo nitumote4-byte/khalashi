@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { z } from "zod";
-import { getSession, logout, requestOtp, verifyOtp } from "../services/authService";
+import { env } from "../config/env";
+import { clientIp, rateLimit } from "../middleware/rateLimit";
+import { getSession, logout, normalizePhone, requestOtp, verifyOtp } from "../services/authService";
+import { ErrorCodes, httpError } from "../utils/errors";
+import { sendError } from "../utils/respond";
 
 export const authRouter = Router();
 
@@ -19,40 +23,51 @@ function bearer(req: { headers: { authorization?: string } }): string | undefine
   return h.slice(7);
 }
 
-authRouter.post("/auth/otp/request", async (req, res) => {
+const otpPhoneLimit = rateLimit({
+  name: "otp-phone",
+  limit: env.RATE_LIMIT_OTP_PER_PHONE,
+  windowMs: env.RATE_LIMIT_OTP_WINDOW_SEC * 1000,
+  keyFn: (req) => {
+    try {
+      const phone = phoneBody.parse(req.body).phone;
+      return normalizePhone(phone);
+    } catch {
+      return `bad:${clientIp(req)}`;
+    }
+  },
+});
+
+const otpIpLimit = rateLimit({
+  name: "otp-ip",
+  limit: env.RATE_LIMIT_OTP_PER_IP,
+  windowMs: env.RATE_LIMIT_OTP_WINDOW_SEC * 1000,
+  keyFn: (req) => clientIp(req),
+});
+
+authRouter.post("/auth/otp/request", otpIpLimit, otpPhoneLimit, async (req, res) => {
   try {
     const { phone } = phoneBody.parse(req.body);
     const result = await requestOtp(phone);
     res.json({ ok: true, ...result });
   } catch (err) {
-    const e = err as { status?: number; message?: string; errors?: unknown };
-    if (e instanceof z.ZodError) {
-      res.status(400).json({ ok: false, error: "Invalid phone payload" });
-      return;
-    }
-    res.status(e.status ?? 500).json({ ok: false, error: e.message ?? "Request failed" });
+    sendError(res, err);
   }
 });
 
-authRouter.post("/auth/otp/verify", async (req, res) => {
+authRouter.post("/auth/otp/verify", otpIpLimit, async (req, res) => {
   try {
     const { phone, code } = verifyBody.parse(req.body);
     const result = await verifyOtp(phone, code);
     res.json({ ok: true, ...result });
   } catch (err) {
-    const e = err as { status?: number; message?: string };
-    if (e instanceof z.ZodError) {
-      res.status(400).json({ ok: false, error: "Invalid verify payload" });
-      return;
-    }
-    res.status(e.status ?? 500).json({ ok: false, error: e.message ?? "Verify failed" });
+    sendError(res, err);
   }
 });
 
 authRouter.get("/auth/me", (req, res) => {
   const auth = getSession(bearer(req));
   if (!auth) {
-    res.status(401).json({ ok: false, error: "Unauthorized" });
+    sendError(res, httpError(401, "Unauthorized", ErrorCodes.UNAUTHORIZED));
     return;
   }
   res.json({

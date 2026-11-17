@@ -6,7 +6,9 @@ import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
 import '../utils/format.dart';
+import '../widgets/async_state.dart';
 import 'book_seats_screen.dart';
+import 'help_screen.dart';
 
 class TripDetailScreen extends StatefulWidget {
   const TripDetailScreen({
@@ -32,6 +34,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     _future = _api.getTrip(widget.tripId);
   }
 
+  void _reload() => setState(() => _future = _api.getTrip(widget.tripId));
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -44,7 +48,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Center(child: Text(snap.error.toString()));
+            return ErrorState(error: snap.error!, onRetry: _reload);
           }
           final trip = snap.data!;
           final canBook = trip.canBook;
@@ -76,6 +80,16 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     Text(
                       l10n.seatPreferenceNote,
                       style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const HelpScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(l10n.safetyAndTerms),
                     ),
                     if (!canBook) ...[
                       const SizedBox(height: 16),

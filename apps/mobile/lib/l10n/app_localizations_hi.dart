@@ -175,4 +175,85 @@ class AppLocalizationsHi extends AppLocalizations {
   String get errorInvalidFare => 'मान्य किराया दर्ज करें';
   @override
   String get errorPastDeparture => 'प्रस्थान भविष्य में होना चाहिए';
+  @override
+  String get helpTitle => 'मदद और सुरक्षा';
+  @override
+  String get helpSubtitle => 'नकद, रद्द नियम, सहायता';
+  @override
+  String get cashHowTitle => 'नकद कैसे काम करता है';
+  @override
+  String get cashHowBody =>
+      'किराया यात्रा पर ड्राइवर को नकद दें। खलाशी पैसे नहीं लेता, रखता या लौटाता।';
+  @override
+  String get seatPrefHelpTitle => 'सीट पसंद';
+  @override
+  String get seatPrefHelpBody =>
+      'आगे / खिड़की / कोई भी केवल अनुरोध है — गारंटीड सीट मैप नहीं।';
+  @override
+  String get cancelHelpTitle => 'शुरू होने तक मुफ़्त रद्द';
+  @override
+  String get cancelHelpBody =>
+      'ड्राइवर या यात्री यात्रा शुरू होने तक मुफ़्त रद्द कर सकते हैं। शुरू के बाद ऐप में रद्द नहीं। ऐप में कोई नकद जुर्माना नहीं।';
+  @override
+  String get safetyTipsTitle => 'सुरक्षा सुझाव';
+  @override
+  String get safetyTip1 =>
+      '1. रूट, समय और दूसरे पक्ष का फ़ोन परिवार/मित्र से साझा करें।';
+  @override
+  String get safetyTip2 => '2. जहाँ संभव हो, सार्वजनिक और रोशन जगह पर मिलें।';
+  @override
+  String get safetyTip3 => '3. चढ़ने से पहले ऐप में बुकिंग विवरण जाँचें।';
+  @override
+  String get safetyTip4 =>
+      '4. सूचीबद्ध नकद किराया दें; रवाना होने से पहले साफ़ सहमति लें।';
+  @override
+  String get safetyTip5 =>
+      '5. असहज लगने पर यात्रा शुरू होने तक मुफ़्त रद्द करें।';
+  @override
+  String get safetyTip6 =>
+      '6. असुरक्षित लगने पर स्थिति छोड़ें और आपातकालीन सेवाएँ कॉल करें।';
+  @override
+  String get emergencyLine =>
+      'तुरंत खतरे में हों तो पुलिस / 112 कॉल करें। खलाशी सहायता बुकिंग के लिए है — आपातकालीन सेवा नहीं।';
+  @override
+  String get disclaimerTitle => 'ज़रूरी';
+  @override
+  String get disclaimerBody =>
+      'खलाशी कारपूल बाज़ार है, टैक्सी नहीं। उपयोगकर्ता पहचान-सत्यापित नहीं (केवल फ़ोन OTP)। खलाशी लाइसेंस/वाहन जाँच या देयता बीमा नहीं देता। सीट पसंद अनुरोध है। नकद विवाद यात्रा पर लोगों के बीच हैं।';
+  @override
+  String get operatorLine => 'Nitin Mote Tours & Travel के साथ संचालित।';
+  @override
+  String get supportTitle => 'खलाशी सहायता';
+  @override
+  String get supportHours => 'कार्य समय — बुकिंग मदद के लिए';
+  @override
+  String get supportWhatsApp => 'व्हाट्सऐप';
+  @override
+  String get supportPhone => 'फ़ोन';
+  @override
+  String get copyWhatsApp => 'व्हाट्सऐप नंबर कॉपी करें';
+  @override
+  String get copyPhone => 'फ़ोन नंबर कॉपी करें';
+  @override
+  String get copied => 'कॉपी हो गया';
+  @override
+  String get supportStubNote =>
+      'लॉन्च से पहले स्टब नंबर को असली ऑप्स व्हाट्सऐप/फ़ोन से बदलें।';
+  @override
+  String get supportOpenFailed => 'खोल नहीं सके। नंबर कॉपी करें।';
+  @override
+  String get needHelpBooking => 'इस बुकिंग में मदद चाहिए?';
+  @override
+  String get safetyAndTerms => 'सुरक्षा और शर्तें';
+  @override
+  String get bookMicroDisclaimer =>
+      'यात्रा पर नकद · KYC नहीं · खलाशी बीमा नहीं';
+  @override
+  String get errorGeneric => 'कुछ गलत हुआ';
+  @override
+  String get errorNetworkHint => 'कनेक्शन जाँचें और फिर कोशिश करें।';
+  @override
+  String get errorRateLimited => 'बहुत अनुरोध। थोड़ी देर बाद कोशिश करें।';
+  @override
+  String get errorUnauthorized => 'फिर साइन इन करें।';
 }
