@@ -1,9 +1,11 @@
 /**
- * In-memory OTP + session store for Phase 1 shell.
- * Swap to Postgres otp_challenges + real sessions when DB is wired in CI/prod.
+ * Mock OTP + session store for Phase 1–2.
+ * Users are upserted into Postgres so trips/bookings can FK to users.id.
+ * OTP challenges and sessions stay in-memory (swap later for production).
  */
 import { randomBytes } from "crypto";
 import { env } from "../config/env";
+import { pool } from "../db/pool";
 import { generateOtpCode, hashOtp, sendOtp, verifyOtpHash } from "./otpProvider";
 
 type Challenge = {
@@ -20,7 +22,7 @@ type Session = {
   expiresAt: number;
 };
 
-type User = {
+export type AuthUser = {
   id: string;
   phone: string;
   displayName: string | null;
@@ -29,7 +31,8 @@ type User = {
 
 const challenges = new Map<string, Challenge>();
 const sessions = new Map<string, Session>();
-const usersByPhone = new Map<string, User>();
+const usersById = new Map<string, AuthUser>();
+const usersByPhone = new Map<string, AuthUser>();
 
 const RATE_WINDOW_MS = 60_000;
 const sendTimestamps = new Map<string, number[]>();
@@ -54,17 +57,54 @@ function assertRateLimit(phone: string) {
   sendTimestamps.set(phone, recent);
 }
 
-function ensureUser(phone: string): User {
-  let user = usersByPhone.get(phone);
-  if (!user) {
-    user = {
-      id: randomBytes(16).toString("hex"),
-      phone,
-      displayName: null,
-      language: "en",
+function cacheUser(user: AuthUser) {
+  usersById.set(user.id, user);
+  usersByPhone.set(user.phone, user);
+}
+
+async function ensureUser(phone: string): Promise<AuthUser> {
+  const cached = usersByPhone.get(phone);
+  if (cached) return cached;
+
+  const existing = await pool.query<{
+    id: string;
+    phone: string;
+    display_name: string | null;
+    language: "en" | "hi";
+  }>("SELECT id, phone, display_name, language FROM users WHERE phone = $1", [phone]);
+
+  if (existing.rows[0]) {
+    const row = existing.rows[0];
+    const user: AuthUser = {
+      id: row.id,
+      phone: row.phone,
+      displayName: row.display_name,
+      language: row.language,
     };
-    usersByPhone.set(phone, user);
+    cacheUser(user);
+    return user;
   }
+
+  const inserted = await pool.query<{
+    id: string;
+    phone: string;
+    display_name: string | null;
+    language: "en" | "hi";
+  }>(
+    `INSERT INTO users (phone, language)
+     VALUES ($1, 'en')
+     ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
+     RETURNING id, phone, display_name, language`,
+    [phone]
+  );
+  const row = inserted.rows[0];
+  const user: AuthUser = {
+    id: row.id,
+    phone: row.phone,
+    displayName: row.display_name,
+    language: row.language,
+  };
+  cacheUser(user);
   return user;
 }
 
@@ -111,7 +151,7 @@ export async function verifyOtp(phoneRaw: string, code: string) {
   }
 
   challenges.delete(phone);
-  const user = ensureUser(phone);
+  const user = await ensureUser(phone);
   const token = randomBytes(32).toString("hex");
   const expiresAt = Date.now() + env.SESSION_TTL_SECONDS * 1000;
   sessions.set(token, { token, userId: user.id, phone: user.phone, expiresAt });
@@ -136,11 +176,63 @@ export function getSession(token: string | undefined) {
     sessions.delete(token);
     return null;
   }
-  const user = usersByPhone.get(session.phone);
+  const user = usersById.get(session.userId) ?? usersByPhone.get(session.phone);
   if (!user) return null;
   return { session, user };
 }
 
 export function logout(token: string | undefined) {
   if (token) sessions.delete(token);
+}
+
+export async function updateDisplayName(userId: string, displayName: string | null) {
+  const { rows } = await pool.query<{
+    id: string;
+    phone: string;
+    display_name: string | null;
+    language: "en" | "hi";
+  }>(
+    `UPDATE users
+     SET display_name = $2, updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, phone, display_name, language`,
+    [userId, displayName]
+  );
+  if (!rows[0]) {
+    throw Object.assign(new Error("User not found"), { status: 404 });
+  }
+  const user: AuthUser = {
+    id: rows[0].id,
+    phone: rows[0].phone,
+    displayName: rows[0].display_name,
+    language: rows[0].language,
+  };
+  cacheUser(user);
+  return user;
+}
+
+export async function updateLanguage(userId: string, language: "en" | "hi") {
+  const { rows } = await pool.query<{
+    id: string;
+    phone: string;
+    display_name: string | null;
+    language: "en" | "hi";
+  }>(
+    `UPDATE users
+     SET language = $2, updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, phone, display_name, language`,
+    [userId, language]
+  );
+  if (!rows[0]) {
+    throw Object.assign(new Error("User not found"), { status: 404 });
+  }
+  const user: AuthUser = {
+    id: rows[0].id,
+    phone: rows[0].phone,
+    displayName: rows[0].display_name,
+    language: rows[0].language,
+  };
+  cacheUser(user);
+  return user;
 }

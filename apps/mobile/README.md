@@ -1,12 +1,13 @@
 # Khalashi mobile (Flutter)
 
-Phase 0–1 shell: splash, language (HI/EN), phone OTP stubs, home hub with Find / Offer stubs.
+Phase 2: auth shell + Find/Offer rides, search/book with seat preference, my trips/bookings, free cancel until start. Cash-on-trip copy; Hindi + English.
 
 ## Screens
 
-1. Splash (brand) → language (first run) → phone → OTP → home
-2. Home: **Find a ride** / **Offer a ride** stubs (later phases)
-3. Session restore via `shared_preferences`
+1. Splash → language → phone OTP → home
+2. Find a ride → results → trip detail → book (preference chips) → success
+3. Offer a ride → publish → trip manage (cancel trip / view bookings)
+4. My bookings / My trips + booking/trip cancel
 
 ## Setup
 
@@ -23,4 +24,4 @@ iOS simulator can use `http://localhost:3000`.
 
 ## i18n
 
-ARB sources live in `lib/l10n/`. Hand-written `AppLocalizations` classes ship for the shell; with Flutter installed you can also run `flutter gen-l10n`.
+ARB sources in `lib/l10n/` plus hand-maintained `AppLocalizations` (EN/HI). With Flutter installed you can run `flutter gen-l10n`.
