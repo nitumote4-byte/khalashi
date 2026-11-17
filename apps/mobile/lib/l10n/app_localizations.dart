@@ -8,7 +8,7 @@ import 'package:intl/intl.dart' as intl;
 import 'app_localizations_en.dart';
 import 'app_localizations_hi.dart';
 
-/// Hand-maintained Phase 0 shell. Prefer `flutter gen-l10n` once Flutter SDK is available.
+/// Hand-maintained HI/EN strings. Prefer `flutter gen-l10n` once Flutter SDK is available.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
       : localeName = intl.Intl.canonicalizedLocale(locale.toString());
@@ -59,9 +59,65 @@ abstract class AppLocalizations {
   String get myTrips;
   String get profile;
   String get logout;
-  String get stubComingSoon;
-  String get comingSoonFind;
-  String get comingSoonOffer;
+  String get retry;
+  String get home;
+  String get origin;
+  String get destination;
+  String get searchRides;
+  String get offerRideInstead;
+  String get noRidesFound;
+  String get changeDate;
+  String get full;
+  String get seats;
+  String get seat;
+  String get seatsLeft;
+  String get cashOnTrip;
+  String get tripDetail;
+  String get driver;
+  String get seatPreferenceNote;
+  String get noSeatsLeft;
+  String get tripUnavailable;
+  String get bookSeats;
+  String get preference;
+  String get prefFront;
+  String get prefWindow;
+  String get prefAny;
+  String get seatPreferenceRequestOnly;
+  String get totalDue;
+  String get confirmBooking;
+  String get bookingConfirmed;
+  String get bookingRef;
+  String get payCashWhenMeet;
+  String get viewBooking;
+  String get upcoming;
+  String get past;
+  String get noBookingsYet;
+  String get bookingDetail;
+  String get statusConfirmed;
+  String get statusCancelled;
+  String get cancelBooking;
+  String get cancelBookingConfirm;
+  String get bookingCancelled;
+  String get keep;
+  String get confirmCancel;
+  String get traveller;
+  String get seatsAvailable;
+  String get farePerSeat;
+  String get youSetFare;
+  String get cashDriverNote;
+  String get publishTrip;
+  String get postSuccessTitle;
+  String get tripManage;
+  String get cashCollectNote;
+  String get cancelTrip;
+  String get cancelTripConfirm;
+  String get tripCancelled;
+  String get bookingsOnTrip;
+  String get noBookingsOnTrip;
+  String get noTripsYet;
+  String get errorCitiesRequired;
+  String get errorInvalidFare;
+  String get errorPastDeparture;
 }
 
 class _AppLocalizationsDelegate

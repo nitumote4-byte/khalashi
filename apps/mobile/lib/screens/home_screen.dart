@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
+import 'my_bookings_screen.dart';
+import 'my_trips_screen.dart';
 import 'phone_screen.dart';
+import 'post_trip_screen.dart';
+import 'search_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.sessionStore});
@@ -19,10 +23,6 @@ class HomeScreen extends StatelessWidget {
       ),
       (_) => false,
     );
-  }
-
-  void _stub(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -80,25 +80,51 @@ class HomeScreen extends StatelessWidget {
                   title: l10n.findRide,
                   subtitle: l10n.findRideSubtitle,
                   icon: Icons.search,
-                  onTap: () => _stub(context, l10n.comingSoonFind),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => SearchScreen(sessionStore: sessionStore),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
                 _HubAction(
                   title: l10n.offerRide,
                   subtitle: l10n.offerRideSubtitle,
                   icon: Icons.directions_car_filled_outlined,
-                  onTap: () => _stub(context, l10n.comingSoonOffer),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => PostTripScreen(sessionStore: sessionStore),
+                      ),
+                    );
+                  },
                 ),
                 const Spacer(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     TextButton(
-                      onPressed: () => _stub(context, l10n.stubComingSoon),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                MyBookingsScreen(sessionStore: sessionStore),
+                          ),
+                        );
+                      },
                       child: Text(l10n.myBookings),
                     ),
                     TextButton(
-                      onPressed: () => _stub(context, l10n.stubComingSoon),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                MyTripsScreen(sessionStore: sessionStore),
+                          ),
+                        );
+                      },
                       child: Text(l10n.myTrips),
                     ),
                   ],
