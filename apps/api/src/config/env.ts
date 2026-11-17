@@ -9,7 +9,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().default("postgres://khalashi:khalashi@localhost:5432/khalashi"),
 
   // Auth / OTP
-  // mock = log OTP to console (dev). msg91 | 2factor for production SMS after DLT approval.
+  // mock = log OTP to console (dev default). msg91 = real SMS after India DLT approval.
   OTP_PROVIDER: z.enum(["mock", "msg91", "2factor"]).default("mock"),
   OTP_EXPIRY_SECONDS: z.coerce.number().default(300),
   OTP_LENGTH: z.coerce.number().default(6),
@@ -17,12 +17,12 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().default("change-me-in-production"),
   SESSION_TTL_SECONDS: z.coerce.number().default(604800),
 
-  // MSG91 (when OTP_PROVIDER=msg91) — requires India DLT-registered template
+  // MSG91 (required when OTP_PROVIDER=msg91) — never commit real values
   MSG91_AUTH_KEY: z.string().optional(),
   MSG91_TEMPLATE_ID: z.string().optional(),
   MSG91_SENDER_ID: z.string().optional(),
 
-  // 2Factor (when OTP_PROVIDER=2factor) — requires India DLT-registered template
+  // 2Factor alternative (when OTP_PROVIDER=2factor)
   TWO_FACTOR_API_KEY: z.string().optional(),
 
   // Soft-launch rate limits / spam guards

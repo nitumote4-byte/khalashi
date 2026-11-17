@@ -1,5 +1,7 @@
 /**
- * Mock OTP + session store for Phase 1–3.
+ * OTP + session store for Phase 1–3.
+ * Provider: OTP_PROVIDER=mock|msg91|2factor (default mock).
+ * Send goes through otpProvider; verify is always against the in-memory challenge hash.
  * Users are upserted into Postgres so trips/bookings can FK to users.id.
  * OTP challenges and sessions stay in-memory (swap later for production).
  */

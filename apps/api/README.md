@@ -35,10 +35,17 @@ Errors: `{ "ok": false, "error": "...", "code": "RATE_LIMITED" | "SEATS_FULL" | 
 
 ## OTP providers
 
-Set `OTP_PROVIDER` in `.env`:
+Set `OTP_PROVIDER` in `.env` (default **`mock`** for local/dev):
 
-- `mock` (default) — prints OTP; optional `OTP_MOCK_CODE=123456`
-- `msg91` / `2factor` — stubs until DLT templates are live; see `.env.example`
+| Value | Behavior |
+|-------|----------|
+| `mock` | Logs OTP; returns `debugCode`; optional `OTP_MOCK_CODE=123456` |
+| `msg91` | Sends SMS via MSG91 OTP API v5 with our generated code; verify stays local |
+| `2factor` | Stub until wired; requires `TWO_FACTOR_API_KEY` |
+
+**MSG91 required env** (when `OTP_PROVIDER=msg91`): `MSG91_AUTH_KEY`, `MSG91_TEMPLATE_ID`, `MSG91_SENDER_ID`. Missing any → `503` / `OTP_PROVIDER_MISCONFIGURED`.
+
+**Secrets:** never commit real keys. Use local `.env`, Cursor Environment Secrets, or GitHub Actions secrets under those exact names. See root README + `.env.example` for India DLT notes.
 
 OTP challenges + sessions stay in-memory; **users/trips/bookings require Postgres**.
 
@@ -51,7 +58,8 @@ npm run migrate
 npm run dev
 ```
 
-Smoke (API running on :3000):
+Smoke:
 
-- `./scripts/smoke-phase2.sh` — trip/book/cancel
-- `./scripts/smoke-phase3.sh` — rate limits + spam codes
+- `./scripts/smoke-otp.sh` — mock OTP + msg91 misconfig (starts its own processes)
+- `./scripts/smoke-phase2.sh` — trip/book/cancel (API on :3000)
+- `./scripts/smoke-phase3.sh` — rate limits + spam codes (API on :3000)

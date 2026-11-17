@@ -28,12 +28,29 @@ npm run migrate
 npm run dev
 ```
 
-### Auth (mock OTP)
+### Auth (OTP)
 
 - `POST /auth/otp/request` `{ "phone": "9876543210" }` — returns `debugCode` when `OTP_PROVIDER=mock`
 - `POST /auth/otp/verify` `{ "phone": "9876543210", "code": "123456" }` → Bearer token
+- Default provider is **mock** (local/dev). Production: `OTP_PROVIDER=msg91` after India DLT template approval.
+- MSG91 **sends** SMS; **verify** is always against the server challenge hash (same as mock).
 - Users are upserted into Postgres on verify (required for trips/bookings)
 - Soft-launch: OTP / search / book / trip-post are rate-limited (`RATE_LIMIT_*` in `.env`)
+
+#### MSG91 secrets (never commit real keys)
+
+Set these only in local `.env` (gitignored), **Cursor Dashboard → Cloud Agents → Environments → Secrets**, or **GitHub → Settings → Secrets and variables → Actions** (same names):
+
+| Secret name | Purpose |
+|-------------|---------|
+| `OTP_PROVIDER` | `mock` (default) or `msg91` |
+| `MSG91_AUTH_KEY` | MSG91 auth key |
+| `MSG91_TEMPLATE_ID` | MSG91 OTP template id (must match DLT copy) |
+| `MSG91_SENDER_ID` | DLT-approved sender header |
+| `SESSION_SECRET` | Session hashing / tokens |
+| `DATABASE_URL` | Postgres |
+
+India **DLT (TRAI):** register entity + OTP SMS template first; MSG91 template wording/sender must match. Missing MSG91 vars with `OTP_PROVIDER=msg91` → `503` / `OTP_PROVIDER_MISCONFIGURED`. Do not paste keys into chat.
 
 ### Trips & bookings (Bearer required)
 
@@ -88,12 +105,13 @@ Use this before inviting real drivers/travellers (practical soft launch — full
    - Set `DATABASE_URL` in production `.env`.
    - Run `cd apps/api && npm run migrate` against that database.
 2. **Mock vs real OTP**
-   - Dev / smoke: `OTP_PROVIDER=mock` (console + `debugCode`; optional `OTP_MOCK_CODE`).
-   - Production: set `OTP_PROVIDER=msg91` or `2factor` and fill provider keys in `.env` (see `apps/api/.env.example`).
+   - Dev / smoke: `OTP_PROVIDER=mock` (default; console + `debugCode`; optional `OTP_MOCK_CODE`).
+   - Production: `OTP_PROVIDER=msg91` plus `MSG91_AUTH_KEY`, `MSG91_TEMPLATE_ID`, `MSG91_SENDER_ID` via host secrets (never commit). See `apps/api/.env.example`.
+   - Smoke misconfig: `OTP_PROVIDER=msg91` with empty MSG91_* → clear `OTP_PROVIDER_MISCONFIGURED` (`apps/api/scripts/smoke-otp.sh`).
    - Keep `SESSION_SECRET` long and random in production.
 3. **India DLT (SMS)**
    - Register entity + **OTP template** on DLT (TRAI) **before** flipping off mock.
-   - Template wording must match MSG91 / 2Factor template IDs.
+   - Template wording + sender must match MSG91 OTP template id / `MSG91_SENDER_ID`.
    - DLT approval is external calendar time — start early.
 4. **Rate limits / spam**
    - Confirm `RATE_LIMIT_*`, `MAX_TRIPS_PER_DRIVER_PER_DAY`, `MIN_DEPART_AHEAD_MINUTES` fit your soft-launch traffic.
@@ -103,6 +121,7 @@ Use this before inviting real drivers/travellers (practical soft launch — full
    - Replace support stubs (WhatsApp + phone) in `support_contacts.dart`.
    - Spot-check Help & safety copy (cash, not KYC-verified, 112 for emergencies).
 6. **Smoke**
+   - `./scripts/smoke-otp.sh` — mock OTP request/verify + msg91-without-keys misconfig.
    - `./scripts/smoke-phase2.sh` — book + seat race + cancel.
    - `./scripts/smoke-phase3.sh` — OTP rate limit + spam trip guards + error codes.
 7. **Play Store (optional this phase)**
@@ -119,5 +138,6 @@ Product outline, feature list, wireframes, dispute/safety, and tech build plan l
 |------:|-------|--------|
 | 0–1 | Foundations + OTP auth shell | Done |
 | 2 | Trip post + search/book + free cancel | Done |
-| 3 | Soft-launch harden (limits, Help/safety, ops) | This branch |
-| Later | Real SMS wiring polish, Play build, crash reporting | Next |
+| 3 | Soft-launch harden (limits, Help/safety, ops) | Done |
+| — | Real MSG91 OTP send (verify via stored challenge) | This branch |
+| Later | Play build, crash reporting, 2Factor option | Next |
