@@ -33,7 +33,8 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
   sendError(res, err);
 });
 
-app.listen(env.PORT, () => {
+// Bind all interfaces so container hosts (Railway / Render / Fly) can reach the process.
+app.listen(env.PORT, "0.0.0.0", () => {
   console.log(
     JSON.stringify({
       level: "info",

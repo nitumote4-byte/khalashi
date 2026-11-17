@@ -63,3 +63,11 @@ Smoke:
 - `./scripts/smoke-otp.sh` — mock OTP + msg91 misconfig (starts its own processes)
 - `./scripts/smoke-phase2.sh` — trip/book/cancel (API on :3000)
 - `./scripts/smoke-phase3.sh` — rate limits + spam codes (API on :3000)
+
+## Deploy
+
+Container image: `Dockerfile` + `docker-entrypoint.sh` (migrations then `node dist/index.js`).
+
+Host configs: `railway.toml`, `fly.toml` (this folder); repo-root `render.yaml` Blueprint.
+
+Soft-launch env: `OTP_PROVIDER=mock`, `DATABASE_URL`, `SESSION_SECRET` (host secrets only). See root README **Deploy** section for Flutter `API_BASE_URL` and agent token unblock steps.
