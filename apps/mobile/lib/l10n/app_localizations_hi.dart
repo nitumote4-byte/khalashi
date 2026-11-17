@@ -146,6 +146,14 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get youSetFare => 'किराया आप तय करते हैं';
   @override
+  String get vehicleDetails => 'वाहन';
+  @override
+  String get carModel => 'कार मॉडल';
+  @override
+  String get numberPlate => 'नंबर प्लेट';
+  @override
+  String get carColor => 'रंग';
+  @override
   String get cashDriverNote => 'यात्री यात्रा पर आपको नकद देंगे।';
   @override
   String get publishTrip => 'ट्रिप प्रकाशित करें';
@@ -173,6 +181,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get errorCitiesRequired => 'शहर भरें';
   @override
   String get errorInvalidFare => 'मान्य किराया दर्ज करें';
+  @override
+  String get errorVehicleRequired => 'कार मॉडल, नंबर प्लेट और रंग भरें';
   @override
   String get errorPastDeparture => 'प्रस्थान भविष्य में होना चाहिए';
   @override

@@ -41,6 +41,7 @@ class BookSuccessScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text('${trip.origin} → ${trip.destination}'),
               Text(formatDateTime(trip.departAt)),
+              Text(trip.vehicleSummary),
             ],
             Text('${booking.seats} ${l10n.seats} · ${l10n.preference}: ${booking.seatPreference}'),
             Text('${l10n.totalDue}: ${formatInr(booking.cashTotalInr)}'),

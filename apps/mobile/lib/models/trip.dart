@@ -8,6 +8,9 @@ class Trip {
     required this.seatsTotal,
     required this.seatsLeft,
     required this.fareInr,
+    required this.carModel,
+    required this.numberPlate,
+    required this.carColor,
     required this.status,
     this.driverDisplayName,
     this.driverPhone,
@@ -21,6 +24,9 @@ class Trip {
   final int seatsTotal;
   final int seatsLeft;
   final int fareInr;
+  final String carModel;
+  final String numberPlate;
+  final String carColor;
   final String status;
   final String? driverDisplayName;
   final String? driverPhone;
@@ -29,6 +35,9 @@ class Trip {
   bool get isOpen => status == 'open';
   bool get canBook => isOpen && seatsLeft > 0 && departAt.isAfter(DateTime.now());
   bool get canCancel => isOpen && departAt.isAfter(DateTime.now());
+
+  /// Compact line for list / detail: "White Swift Dzire · MH12AB1234"
+  String get vehicleSummary => '$carColor $carModel · $numberPlate';
 
   factory Trip.fromJson(Map<String, dynamic> json) {
     return Trip(
@@ -40,6 +49,9 @@ class Trip {
       seatsTotal: json['seatsTotal'] as int,
       seatsLeft: json['seatsLeft'] as int,
       fareInr: json['fareInr'] as int,
+      carModel: json['carModel'] as String? ?? '',
+      numberPlate: json['numberPlate'] as String? ?? '',
+      carColor: json['carColor'] as String? ?? '',
       status: json['status'] as String,
       driverDisplayName: json['driverDisplayName'] as String?,
       driverPhone: json['driverPhone'] as String?,

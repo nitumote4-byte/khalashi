@@ -146,6 +146,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get youSetFare => 'You set the fare';
   @override
+  String get vehicleDetails => 'Vehicle';
+  @override
+  String get carModel => 'Car model';
+  @override
+  String get numberPlate => 'Number plate';
+  @override
+  String get carColor => 'Color';
+  @override
   String get cashDriverNote => 'Travellers pay you in cash on the trip.';
   @override
   String get publishTrip => 'Publish trip';
@@ -173,6 +181,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorCitiesRequired => 'Enter origin and destination';
   @override
   String get errorInvalidFare => 'Enter a valid fare';
+  @override
+  String get errorVehicleRequired => 'Enter car model, number plate, and color';
   @override
   String get errorPastDeparture => 'Departure must be in the future';
   @override

@@ -104,6 +104,10 @@ abstract class AppLocalizations {
   String get seatsAvailable;
   String get farePerSeat;
   String get youSetFare;
+  String get vehicleDetails;
+  String get carModel;
+  String get numberPlate;
+  String get carColor;
   String get cashDriverNote;
   String get publishTrip;
   String get postSuccessTitle;
@@ -117,6 +121,7 @@ abstract class AppLocalizations {
   String get noTripsYet;
   String get errorCitiesRequired;
   String get errorInvalidFare;
+  String get errorVehicleRequired;
   String get errorPastDeparture;
   String get helpTitle;
   String get helpSubtitle;

@@ -114,6 +114,7 @@ class _TripManageScreenState extends State<TripManageScreen> {
               Text(
                 '${formatInr(trip.fareInr)}/seat · ${trip.seatsLeft}/${trip.seatsTotal} left · ${trip.status}',
               ),
+              Text(trip.vehicleSummary),
               const SizedBox(height: 8),
               Text(
                 l10n.cashCollectNote,

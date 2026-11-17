@@ -105,9 +105,11 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                           '${formatInr(t.fareInr)}',
                         ),
                         subtitle: Text(
+                          '${t.vehicleSummary}\n'
                           '${l10n.cashOnTrip}'
                           '${t.driverDisplayName != null ? ' · ${t.driverDisplayName}' : ''}',
                         ),
+                        isThreeLine: true,
                         trailing: const Icon(Icons.chevron_right),
                         onTap: full
                             ? null
