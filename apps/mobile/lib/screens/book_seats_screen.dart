@@ -111,6 +111,11 @@ class _BookSeatsScreenState extends State<BookSeatsScreen> {
                   '${l10n.totalDue}: ${formatInr(total)} · ${l10n.cashOnTrip}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.bookMicroDisclaimer,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
                   Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'l10n/app_localizations.dart';
+import 'locale_scope.dart';
 import 'screens/splash_screen.dart';
 import 'services/session_store.dart';
 import 'theme/khalashi_theme.dart';
@@ -27,16 +28,20 @@ class _KhalashiAppState extends State<KhalashiApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Khalashi',
-      debugShowCheckedModeBanner: false,
-      theme: buildKhalashiTheme(),
+    return LocaleScope(
       locale: _locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      home: SplashScreen(
-        onLocaleChanged: _setLocale,
-        sessionStore: _sessionStore,
+      setLocale: _setLocale,
+      child: MaterialApp(
+        title: 'Khalashi',
+        debugShowCheckedModeBanner: false,
+        theme: buildKhalashiTheme(),
+        locale: _locale,
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: SplashScreen(
+          onLocaleChanged: _setLocale,
+          sessionStore: _sessionStore,
+        ),
       ),
     );
   }

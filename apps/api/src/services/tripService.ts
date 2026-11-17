@@ -1,7 +1,8 @@
 import type { PoolClient } from "pg";
+import { env } from "../config/env";
 import { pool } from "../db/pool";
 import { displayCity, normalizeCity } from "../utils/cities";
-import { httpError } from "../utils/errors";
+import { ErrorCodes, httpError } from "../utils/errors";
 
 export type TripRow = {
   id: string;
@@ -54,30 +55,93 @@ export async function createTrip(input: {
   const origin = displayCity(input.origin);
   const destination = displayCity(input.destination);
   if (!origin || !destination) {
-    throw httpError(400, "Origin and destination are required");
+    throw httpError(400, "Origin and destination are required", ErrorCodes.VALIDATION_ERROR);
   }
   if (normalizeCity(origin) === normalizeCity(destination)) {
-    throw httpError(400, "Origin and destination must be different cities");
+    throw httpError(
+      400,
+      "Origin and destination must be different cities",
+      ErrorCodes.VALIDATION_ERROR
+    );
   }
 
   const departAt = new Date(input.departAt);
   if (Number.isNaN(departAt.getTime())) {
-    throw httpError(400, "Invalid departure time");
+    throw httpError(400, "Invalid departure time", ErrorCodes.VALIDATION_ERROR);
   }
   const now = Date.now();
   if (departAt.getTime() <= now) {
-    throw httpError(400, "Departure must be in the future");
+    throw httpError(400, "Departure must be in the future", ErrorCodes.VALIDATION_ERROR);
+  }
+  const minAheadMs = env.MIN_DEPART_AHEAD_MINUTES * 60 * 1000;
+  if (departAt.getTime() < now + minAheadMs) {
+    throw httpError(
+      400,
+      `Departure must be at least ${env.MIN_DEPART_AHEAD_MINUTES} minutes from now`,
+      ErrorCodes.DEPART_TOO_SOON
+    );
   }
   const maxDepart = now + MAX_DEPART_DAYS * 24 * 60 * 60 * 1000;
   if (departAt.getTime() > maxDepart) {
-    throw httpError(400, `Departure must be within ${MAX_DEPART_DAYS} days`);
+    throw httpError(
+      400,
+      `Departure must be within ${MAX_DEPART_DAYS} days`,
+      ErrorCodes.VALIDATION_ERROR
+    );
   }
 
   if (!Number.isInteger(input.seatsTotal) || input.seatsTotal < 1 || input.seatsTotal > MAX_SEATS) {
-    throw httpError(400, `Seats must be between 1 and ${MAX_SEATS}`);
+    throw httpError(
+      400,
+      `Seats must be between 1 and ${MAX_SEATS}`,
+      ErrorCodes.VALIDATION_ERROR
+    );
   }
   if (!Number.isInteger(input.fareInr) || input.fareInr < 0 || input.fareInr > MAX_FARE_INR) {
-    throw httpError(400, `Fare must be between ₹0 and ₹${MAX_FARE_INR}`);
+    throw httpError(
+      400,
+      `Fare must be between ₹0 and ₹${MAX_FARE_INR}`,
+      ErrorCodes.VALIDATION_ERROR
+    );
+  }
+
+  // Spam guard: cap open trips created by this driver in the last 24h
+  const dayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+  const countResult = await pool.query<{ count: string }>(
+    `SELECT COUNT(*)::text AS count FROM trips
+     WHERE driver_id = $1 AND created_at >= $2`,
+    [input.driverId, dayAgo]
+  );
+  const tripsToday = Number(countResult.rows[0]?.count ?? 0);
+  if (tripsToday >= env.MAX_TRIPS_PER_DRIVER_PER_DAY) {
+    throw httpError(
+      429,
+      `Trip post limit reached (${env.MAX_TRIPS_PER_DRIVER_PER_DAY}/day). Try again tomorrow.`,
+      ErrorCodes.SPAM_TRIP_LIMIT
+    );
+  }
+
+  const originNorm = normalizeCity(origin);
+  const destNorm = normalizeCity(destination);
+
+  // Spam guard: block near-duplicate open trip (same route + same IST calendar day)
+  const dup = await pool.query<{ id: string }>(
+    `SELECT id FROM trips
+     WHERE driver_id = $1
+       AND status = 'open'
+       AND origin_normalized = $2
+       AND destination_normalized = $3
+       AND (depart_at AT TIME ZONE 'Asia/Kolkata')::date
+           = ($4::timestamptz AT TIME ZONE 'Asia/Kolkata')::date
+     LIMIT 1`,
+    [input.driverId, originNorm, destNorm, departAt.toISOString()]
+  );
+  if (dup.rows[0]) {
+    throw httpError(
+      409,
+      "You already have an open trip on this route for that day",
+      ErrorCodes.SPAM_DUPLICATE_TRIP
+    );
   }
 
   const { rows } = await pool.query<TripRow>(
@@ -90,13 +154,25 @@ export async function createTrip(input: {
       input.driverId,
       origin,
       destination,
-      normalizeCity(origin),
-      normalizeCity(destination),
+      originNorm,
+      destNorm,
       departAt.toISOString(),
       input.seatsTotal,
       input.fareInr,
     ]
   );
+
+  console.log(
+    JSON.stringify({
+      level: "info",
+      msg: "trip_created",
+      tripId: rows[0].id,
+      driverId: input.driverId,
+      origin: originNorm,
+      destination: destNorm,
+    })
+  );
+
   return mapTrip(rows[0]);
 }
 
@@ -118,7 +194,7 @@ export async function getTripById(tripId: string) {
      WHERE t.id = $1`,
     [tripId]
   );
-  if (!rows[0]) throw httpError(404, "Trip not found");
+  if (!rows[0]) throw httpError(404, "Trip not found", ErrorCodes.NOT_FOUND);
   return mapTrip(rows[0]);
 }
 
@@ -130,18 +206,18 @@ export async function searchTrips(input: {
   const originNorm = normalizeCity(input.origin);
   const destNorm = normalizeCity(input.destination);
   if (!originNorm || !destNorm) {
-    throw httpError(400, "Origin and destination are required");
+    throw httpError(400, "Origin and destination are required", ErrorCodes.VALIDATION_ERROR);
   }
 
   // Treat date as India calendar day in +05:30.
   const day = input.date.trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) {
-    throw httpError(400, "Date must be YYYY-MM-DD");
+    throw httpError(400, "Date must be YYYY-MM-DD", ErrorCodes.VALIDATION_ERROR);
   }
   const start = new Date(`${day}T00:00:00+05:30`);
   const end = new Date(`${day}T24:00:00+05:30`);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-    throw httpError(400, "Invalid date");
+    throw httpError(400, "Invalid date", ErrorCodes.VALIDATION_ERROR);
   }
 
   const { rows } = await pool.query<TripRow>(
@@ -165,13 +241,13 @@ export async function cancelTrip(tripId: string, driverId: string) {
     await client.query("BEGIN");
     const trip = await lockTrip(client, tripId);
     if (trip.driver_id !== driverId) {
-      throw httpError(403, "Only the driver can cancel this trip");
+      throw httpError(403, "Only the driver can cancel this trip", ErrorCodes.FORBIDDEN);
     }
     if (trip.status !== "open") {
-      throw httpError(400, "Trip is not open");
+      throw httpError(400, "Trip is not open", ErrorCodes.TRIP_NOT_OPEN);
     }
     if (new Date(trip.depart_at).getTime() <= Date.now()) {
-      throw httpError(400, "Cannot cancel after trip start", "TRIP_STARTED");
+      throw httpError(400, "Cannot cancel after trip start", ErrorCodes.TRIP_STARTED);
     }
 
     await client.query(
@@ -206,6 +282,6 @@ export async function lockTrip(client: PoolClient, tripId: string): Promise<Trip
     `SELECT * FROM trips WHERE id = $1 FOR UPDATE`,
     [tripId]
   );
-  if (!rows[0]) throw httpError(404, "Trip not found");
+  if (!rows[0]) throw httpError(404, "Trip not found", ErrorCodes.NOT_FOUND);
   return rows[0];
 }

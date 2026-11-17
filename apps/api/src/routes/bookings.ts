@@ -6,27 +6,9 @@ import {
   getBookingById,
   listMyBookings,
 } from "../services/bookingService";
-import { HttpError } from "../utils/errors";
+import { sendError } from "../utils/respond";
 
 export const bookingsRouter = Router();
-
-function sendErr(res: import("express").Response, err: unknown) {
-  if (err instanceof z.ZodError) {
-    res.status(400).json({ ok: false, error: "Invalid payload", details: err.flatten() });
-    return;
-  }
-  const e = err as { status?: number; message?: string; code?: string };
-  if (err instanceof HttpError || e.status) {
-    res.status(e.status ?? 500).json({
-      ok: false,
-      error: e.message ?? "Request failed",
-      ...(e.code ? { code: e.code } : {}),
-    });
-    return;
-  }
-  console.error(err);
-  res.status(500).json({ ok: false, error: "Internal server error" });
-}
 
 bookingsRouter.get("/bookings/mine", requireAuth, async (req, res) => {
   try {
@@ -34,7 +16,7 @@ bookingsRouter.get("/bookings/mine", requireAuth, async (req, res) => {
     const bookings = await listMyBookings(user.id);
     res.json({ ok: true, bookings });
   } catch (err) {
-    sendErr(res, err);
+    sendError(res, err);
   }
 });
 
@@ -44,7 +26,7 @@ bookingsRouter.get("/bookings/:id", requireAuth, async (req, res) => {
     const booking = await getBookingById(req.params.id, user.id);
     res.json({ ok: true, booking });
   } catch (err) {
-    sendErr(res, err);
+    sendError(res, err);
   }
 });
 
@@ -61,6 +43,6 @@ bookingsRouter.post("/bookings/:id/cancel", requireAuth, async (req, res) => {
     });
     res.json({ ok: true, booking });
   } catch (err) {
-    sendErr(res, err);
+    sendError(res, err);
   }
 });

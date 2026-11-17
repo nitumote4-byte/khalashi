@@ -5,6 +5,7 @@ import '../models/trip.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../utils/format.dart';
+import '../widgets/async_state.dart';
 import 'booking_detail_screen.dart';
 import 'search_screen.dart';
 
@@ -59,15 +60,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(snap.error.toString()),
-                  OutlinedButton(onPressed: _reload, child: Text(l10n.retry)),
-                ],
-              ),
-            );
+            return ErrorState(error: snap.error!, onRetry: _reload);
           }
           final all = snap.data ?? [];
           final now = DateTime.now();
@@ -83,28 +76,18 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
 
           Widget list(List<Booking> items) {
             if (items.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(l10n.noBookingsYet),
-                      const SizedBox(height: 12),
-                      FilledButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) =>
-                                  SearchScreen(sessionStore: widget.sessionStore),
-                            ),
-                          );
-                        },
-                        child: Text(l10n.findRide),
-                      ),
-                    ],
-                  ),
-                ),
+              return EmptyState(
+                message: l10n.noBookingsYet,
+                icon: Icons.confirmation_number_outlined,
+                actionLabel: l10n.findRide,
+                onAction: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          SearchScreen(sessionStore: widget.sessionStore),
+                    ),
+                  );
+                },
               );
             }
             return RefreshIndicator(

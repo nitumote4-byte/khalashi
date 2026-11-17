@@ -118,6 +118,41 @@ abstract class AppLocalizations {
   String get errorCitiesRequired;
   String get errorInvalidFare;
   String get errorPastDeparture;
+  String get helpTitle;
+  String get helpSubtitle;
+  String get cashHowTitle;
+  String get cashHowBody;
+  String get seatPrefHelpTitle;
+  String get seatPrefHelpBody;
+  String get cancelHelpTitle;
+  String get cancelHelpBody;
+  String get safetyTipsTitle;
+  String get safetyTip1;
+  String get safetyTip2;
+  String get safetyTip3;
+  String get safetyTip4;
+  String get safetyTip5;
+  String get safetyTip6;
+  String get emergencyLine;
+  String get disclaimerTitle;
+  String get disclaimerBody;
+  String get operatorLine;
+  String get supportTitle;
+  String get supportHours;
+  String get supportWhatsApp;
+  String get supportPhone;
+  String get copyWhatsApp;
+  String get copyPhone;
+  String get copied;
+  String get supportStubNote;
+  String get supportOpenFailed;
+  String get needHelpBooking;
+  String get safetyAndTerms;
+  String get bookMicroDisclaimer;
+  String get errorGeneric;
+  String get errorNetworkHint;
+  String get errorRateLimited;
+  String get errorUnauthorized;
 }
 
 class _AppLocalizationsDelegate

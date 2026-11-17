@@ -5,6 +5,7 @@ import '../models/trip.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../utils/format.dart';
+import '../widgets/async_state.dart';
 import 'post_trip_screen.dart';
 import 'trip_manage_screen.dart';
 
@@ -43,33 +44,23 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return _ErrorRetry(message: snap.error.toString(), onRetry: _reload);
+            return ErrorState(error: snap.error!, onRetry: _reload);
           }
           final trips = snap.data ?? [];
           if (trips.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(l10n.noTripsYet, textAlign: TextAlign.center),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () async {
-                        await Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) =>
-                                PostTripScreen(sessionStore: widget.sessionStore),
-                          ),
-                        );
-                        _reload();
-                      },
-                      child: Text(l10n.offerRide),
-                    ),
-                  ],
-                ),
-              ),
+            return EmptyState(
+              message: l10n.noTripsYet,
+              icon: Icons.route_outlined,
+              actionLabel: l10n.offerRide,
+              onAction: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        PostTripScreen(sessionStore: widget.sessionStore),
+                  ),
+                );
+                _reload();
+              },
             );
           }
           return RefreshIndicator(
@@ -121,30 +112,6 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
             },
             child: Text(l10n.offerRide),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorRetry extends StatelessWidget {
-  const _ErrorRetry({required this.message, required this.onRetry});
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            OutlinedButton(onPressed: onRetry, child: Text(l10n.retry)),
-          ],
         ),
       ),
     );
