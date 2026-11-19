@@ -108,8 +108,11 @@ class _CityFieldState extends State<CityField> {
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _locating = true);
     try {
-      final city = await _location.resolveCurrentCity();
+      final result = await _location.resolveCurrentCity();
       if (!mounted) return;
+      final city = result.name;
+      // GPS-derived names (incl. non-curated reverse-geocode) are accepted on submit.
+      widget.sessionStore.acceptGpsCity(city);
       widget.controller.text = city;
       widget.controller.selection = TextSelection.collapsed(offset: city.length);
       widget.controller.notifyListeners();

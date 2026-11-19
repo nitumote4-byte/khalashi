@@ -61,4 +61,16 @@ void main() {
     await store.addRecentCity('patn');
     expect(await store.getRecentCities(), ['Pune']);
   });
+
+  test('GPS-accepted places pass resolveAcceptedCity and can be recent', () async {
+    final store = SessionStore();
+    expect(store.resolveAcceptedCity('Keoti'), isNull);
+
+    store.acceptGpsCity('Keoti');
+    expect(store.resolveAcceptedCity('keoti'), 'Keoti');
+    expect(store.resolveAcceptedCity('Darbhanga'), 'Darbhanga');
+
+    await store.addRecentCity('Keoti');
+    expect(await store.getRecentCities(), ['Keoti']);
+  });
 }

@@ -11,6 +11,10 @@ class SessionStore {
   /// Cap for persisted From/To city history (newest first).
   static const recentCitiesLimit = 10;
 
+  /// Places filled via "Use current location" that are not on the curated list.
+  /// In-memory for this app session so Search/Publish still accept them.
+  final Set<String> _gpsAcceptedLower = {};
+
   Future<void> saveSession({required String token, required String phone}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
@@ -43,27 +47,44 @@ class SessionStore {
     return prefs.getString(_langKey);
   }
 
-  /// Newest-first curated cities only (legacy free-text entries are dropped).
+  /// Remember a GPS-derived place so typed-list validation still accepts it.
+  void acceptGpsCity(String city) {
+    final key = city.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase();
+    if (key.isEmpty) return;
+    _gpsAcceptedLower.add(key);
+  }
+
+  bool isGpsAcceptedCity(String city) {
+    final key = city.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase();
+    return key.isNotEmpty && _gpsAcceptedLower.contains(key);
+  }
+
+  /// Curated city, or a GPS-accepted reverse-geocode place for this session.
+  String? resolveAcceptedCity(String raw) {
+    return resolveTripCity(raw, gpsAcceptedLower: _gpsAcceptedLower);
+  }
+
+  /// Newest-first: curated cities, plus GPS-accepted places already stored.
   Future<List<String>> getRecentCities() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList(_recentCitiesKey) ?? const <String>[];
     final out = <String>[];
     final seen = <String>{};
     for (final city in raw) {
-      final canonical = resolveCuratedCity(city);
-      if (canonical == null) continue;
-      final key = canonical.toLowerCase();
+      final name = resolveAcceptedCity(city);
+      if (name == null) continue;
+      final key = name.toLowerCase();
       if (seen.contains(key)) continue;
       seen.add(key);
-      out.add(canonical);
+      out.add(name);
     }
     return out;
   }
 
-  /// Push a curated [city] to the front. Non-curated values are ignored.
-  /// Case-insensitive dedupe; stores canonical casing; cap at [recentCitiesLimit].
+  /// Push a curated or GPS-accepted [city] to the front.
+  /// Case-insensitive dedupe; stores canonical/display casing; cap at [recentCitiesLimit].
   Future<void> addRecentCity(String city) async {
-    final canonical = resolveCuratedCity(city);
+    final canonical = resolveAcceptedCity(city);
     if (canonical == null) return;
 
     final prefs = await SharedPreferences.getInstance();
