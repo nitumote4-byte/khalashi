@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../data/suggested_cities.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
@@ -82,8 +81,9 @@ class _PostTripScreenState extends State<PostTripScreen> {
       setState(() => _error = l10n.errorCitiesRequired);
       return;
     }
-    final origin = resolveCuratedCity(originRaw);
-    final destination = resolveCuratedCity(destinationRaw);
+    // Typed From/To must be curated; GPS fill may also be a reverse-geocode place.
+    final origin = widget.sessionStore.resolveAcceptedCity(originRaw);
+    final destination = widget.sessionStore.resolveAcceptedCity(destinationRaw);
     if (origin == null || destination == null) {
       setState(() => _error = l10n.errorCityNotInList);
       return;
