@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Khalashi uses your location to fill From/To with the nearest supported city. / खलाशी आपके स्थान से निकटतम समर्थित शहर भरने के लिए लोकेशन का उपयोग करता है।</string>
 </dict>
 </plist>

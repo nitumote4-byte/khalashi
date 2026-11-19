@@ -30,6 +30,22 @@
   "destination": "To (city)",
   "recentCities": "Recent",
   "suggestedCities": "Suggested",
+  "cityPickHint": "Pick a city from the list",
+  "cityNoMatchHint": "No matching city — try another spelling",
+  "useCurrentLocation": "Use current location",
+  "locationFilled": "Set to {city}",
+  "@locationFilled": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "locationServiceDisabled": "Turn on location services and try again",
+  "locationPermissionDenied": "Location permission denied",
+  "locationPermissionDeniedForever": "Enable location in Settings to use this",
+  "locationUnavailable": "Could not get your location",
+  "errorCityNotInList": "Choose a city from the list (e.g. Patna, not patn)",
   "searchRides": "Search rides",
   "offerRideInstead": "Or offer a ride",
   "noRidesFound": "No rides for this date. Try another date or offer a ride.",

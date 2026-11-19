@@ -65,6 +65,15 @@ abstract class AppLocalizations {
   String get destination;
   String get recentCities;
   String get suggestedCities;
+  String get cityPickHint;
+  String get cityNoMatchHint;
+  String get useCurrentLocation;
+  String locationFilled(String city);
+  String get locationServiceDisabled;
+  String get locationPermissionDenied;
+  String get locationPermissionDeniedForever;
+  String get locationUnavailable;
+  String get errorCityNotInList;
   String get searchRides;
   String get offerRideInstead;
   String get noRidesFound;

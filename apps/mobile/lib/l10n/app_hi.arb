@@ -30,6 +30,22 @@
   "destination": "कहाँ तक (शहर)",
   "recentCities": "हाल ही में",
   "suggestedCities": "सुझाव",
+  "cityPickHint": "सूची से शहर चुनें",
+  "cityNoMatchHint": "कोई शहर नहीं मिला — दूसरी वर्तनी आज़माएँ",
+  "useCurrentLocation": "वर्तमान स्थान उपयोग करें",
+  "locationFilled": "{city} सेट किया",
+  "@locationFilled": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "locationServiceDisabled": "लोकेशन सेवा चालू करें और फिर कोशिश करें",
+  "locationPermissionDenied": "लोकेशन अनुमति अस्वीकृत",
+  "locationPermissionDeniedForever": "इसके लिए सेटिंग्स में लोकेशन चालू करें",
+  "locationUnavailable": "आपका स्थान नहीं मिल सका",
+  "errorCityNotInList": "सूची से शहर चुनें (जैसे Patna, patn नहीं)",
   "searchRides": "सवारी खोजें",
   "offerRideInstead": "या सवारी दें",
   "noRidesFound": "इस तारीख पर कोई सवारी नहीं। दूसरी तारीख चुनें या सवारी दें।",
