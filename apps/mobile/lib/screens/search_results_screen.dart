@@ -16,16 +16,12 @@ class SearchResultsScreen extends StatefulWidget {
     required this.origin,
     required this.destination,
     required this.dateYmd,
-    this.pickupPoint,
-    this.dropoffPoint,
   });
 
   final SessionStore sessionStore;
   final String origin;
   final String destination;
   final String dateYmd;
-  final String? pickupPoint;
-  final String? dropoffPoint;
 
   @override
   State<SearchResultsScreen> createState() => _SearchResultsScreenState();
@@ -45,22 +41,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         origin: widget.origin,
         destination: widget.destination,
         dateYmd: widget.dateYmd,
-        pickupPoint: widget.pickupPoint,
-        dropoffPoint: widget.dropoffPoint,
       );
 
   void _reload() => setState(() => _future = _load());
-
-  String _routeBanner(AppLocalizations l10n) {
-    final parts = <String>['${widget.origin} → ${widget.destination}', widget.dateYmd];
-    if (widget.pickupPoint != null && widget.pickupPoint!.isNotEmpty) {
-      parts.add('${l10n.pickupPoint}: ${widget.pickupPoint}');
-    }
-    if (widget.dropoffPoint != null && widget.dropoffPoint!.isNotEmpty) {
-      parts.add('${l10n.dropoffPoint}: ${widget.dropoffPoint}');
-    }
-    return parts.join(' · ');
-  }
 
   String _meetingSubtitle(Trip t, AppLocalizations l10n) {
     final lines = <String>[
@@ -91,7 +74,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Text(_routeBanner(l10n)),
+              child: Text('${widget.origin} → ${widget.destination} · ${widget.dateYmd}'),
             ),
           ),
           Expanded(

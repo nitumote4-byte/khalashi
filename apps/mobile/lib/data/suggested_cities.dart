@@ -111,6 +111,16 @@ String? resolveCuratedCity(String raw) {
 
 bool isCuratedCity(String raw) => resolveCuratedCity(raw) != null;
 
+/// Curated city with lat/lng for map centering; null if unknown.
+IndiaCity? lookupCuratedCity(String raw) {
+  final name = resolveCuratedCity(raw);
+  if (name == null) return null;
+  for (final city in kIndiaCities) {
+    if (city.name == name) return city;
+  }
+  return null;
+}
+
 /// Display form for a free-form place (GPS reverse-geocode).
 String displayPlaceName(String raw) {
   final curated = resolveCuratedCity(raw);

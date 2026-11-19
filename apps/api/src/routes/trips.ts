@@ -26,11 +26,22 @@ const meetingPointField = z
   .nullable()
   .transform((v) => (v == null || v.trim() === "" ? undefined : v));
 
+const optionalCoord = z
+  .number()
+  .finite()
+  .optional()
+  .nullable()
+  .transform((v) => (v == null ? undefined : v));
+
 const createBody = z.object({
   origin: z.string().min(1).max(120),
   destination: z.string().min(1).max(120),
   pickupPoint: meetingPointField,
   dropoffPoint: meetingPointField,
+  pickupLat: optionalCoord,
+  pickupLng: optionalCoord,
+  dropoffLat: optionalCoord,
+  dropoffLng: optionalCoord,
   departAt: z.string().min(1),
   seatsTotal: z.number().int(),
   fareInr: z.number().int(),
@@ -43,8 +54,6 @@ const searchQuery = z.object({
   origin: z.string().min(1),
   destination: z.string().min(1),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  pickupPoint: meetingPointField,
-  dropoffPoint: meetingPointField,
 });
 
 const bookBody = z.object({
@@ -83,6 +92,10 @@ tripsRouter.post("/trips", requireAuth, tripPostLimit, async (req, res) => {
       destination: body.destination,
       pickupPoint: body.pickupPoint,
       dropoffPoint: body.dropoffPoint,
+      pickupLat: body.pickupLat,
+      pickupLng: body.pickupLng,
+      dropoffLat: body.dropoffLat,
+      dropoffLng: body.dropoffLng,
       departAt: body.departAt,
       seatsTotal: body.seatsTotal,
       fareInr: body.fareInr,

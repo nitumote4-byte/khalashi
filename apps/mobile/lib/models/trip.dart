@@ -6,6 +6,10 @@ class Trip {
     required this.destination,
     this.pickupPoint,
     this.dropoffPoint,
+    this.pickupLat,
+    this.pickupLng,
+    this.dropoffLat,
+    this.dropoffLng,
     required this.departAt,
     required this.seatsTotal,
     required this.seatsLeft,
@@ -22,10 +26,14 @@ class Trip {
   final String driverId;
   final String origin;
   final String destination;
-  /// Optional free-text boarding landmark/area (e.g. Railway Station).
+  /// Reverse-geocoded boarding address/label from the map pin.
   final String? pickupPoint;
-  /// Optional free-text drop-off landmark/area (e.g. Bus Stand).
+  /// Reverse-geocoded drop-off address/label from the map pin.
   final String? dropoffPoint;
+  final double? pickupLat;
+  final double? pickupLng;
+  final double? dropoffLat;
+  final double? dropoffLng;
   final DateTime departAt;
   final int seatsTotal;
   final int seatsLeft;
@@ -56,6 +64,12 @@ class Trip {
       return trimmed.isEmpty ? null : trimmed;
     }
 
+    double? optionalCoord(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value.toString());
+    }
+
     return Trip(
       id: json['id'] as String,
       driverId: json['driverId'] as String,
@@ -63,6 +77,10 @@ class Trip {
       destination: json['destination'] as String,
       pickupPoint: optionalPoint(json['pickupPoint']),
       dropoffPoint: optionalPoint(json['dropoffPoint']),
+      pickupLat: optionalCoord(json['pickupLat']),
+      pickupLng: optionalCoord(json['pickupLng']),
+      dropoffLat: optionalCoord(json['dropoffLat']),
+      dropoffLng: optionalCoord(json['dropoffLng']),
       departAt: DateTime.parse(json['departAt'] as String).toLocal(),
       seatsTotal: json['seatsTotal'] as int,
       seatsLeft: json['seatsLeft'] as int,

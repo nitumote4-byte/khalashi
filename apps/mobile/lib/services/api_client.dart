@@ -40,6 +40,10 @@ class ApiClient {
     required String destination,
     String? pickupPoint,
     String? dropoffPoint,
+    double? pickupLat,
+    double? pickupLng,
+    double? dropoffLat,
+    double? dropoffLng,
     required DateTime departAt,
     required int seatsTotal,
     required int fareInr,
@@ -55,6 +59,10 @@ class ApiClient {
         'destination': destination,
         if (pickupPoint != null && pickupPoint.isNotEmpty) 'pickupPoint': pickupPoint,
         if (dropoffPoint != null && dropoffPoint.isNotEmpty) 'dropoffPoint': dropoffPoint,
+        if (pickupLat != null) 'pickupLat': pickupLat,
+        if (pickupLng != null) 'pickupLng': pickupLng,
+        if (dropoffLat != null) 'dropoffLat': dropoffLat,
+        if (dropoffLng != null) 'dropoffLng': dropoffLng,
         'departAt': departAt.toUtc().toIso8601String(),
         'seatsTotal': seatsTotal,
         'fareInr': fareInr,
@@ -81,15 +89,11 @@ class ApiClient {
     required String origin,
     required String destination,
     required String dateYmd,
-    String? pickupPoint,
-    String? dropoffPoint,
   }) async {
     final uri = Uri.parse('$baseUrl/trips/search').replace(queryParameters: {
       'origin': origin,
       'destination': destination,
       'date': dateYmd,
-      if (pickupPoint != null && pickupPoint.isNotEmpty) 'pickupPoint': pickupPoint,
-      if (dropoffPoint != null && dropoffPoint.isNotEmpty) 'dropoffPoint': dropoffPoint,
     });
     final res = await http.get(uri, headers: await _headers());
     final body = await _decode(res);

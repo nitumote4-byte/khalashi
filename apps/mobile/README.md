@@ -6,8 +6,9 @@ Phase 2: auth shell + Find/Offer rides, search/book with seat preference, my tri
 
 1. Splash → language → phone OTP → home
 2. Find a ride → results → trip detail → book (preference chips) → success
-3. Offer a ride → publish → trip manage (cancel trip / view bookings)
-4. My bookings / My trips + booking/trip cancel
+3. Offer a ride → map pin pickup/drop (optional) → publish → trip manage
+4. Find a ride → From/To cities + date only (no pickup/drop filters)
+5. My bookings / My trips + booking/trip cancel
 
 ## Setup
 
@@ -32,6 +33,19 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
 # iOS simulator
 flutter run --dart-define=API_BASE_URL=http://localhost:3000
 ```
+
+### Map tiles (Offer Ride pin picker)
+
+Uses **flutter_map** with free **Carto Voyager** tiles (OpenStreetMap data).
+No Google Maps key and no paid placeholder is required for local runs.
+
+Optional override (e.g. MapTiler for higher production traffic):
+
+```bash
+flutter run --dart-define=MAP_TILE_URL_TEMPLATE=https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=YOUR_KEY
+```
+
+See `lib/config/map_tiles.dart`.
 
 ## i18n
 
