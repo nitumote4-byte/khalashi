@@ -2,16 +2,14 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../config/api_config.dart';
 import '../models/trip.dart';
 import 'session_store.dart';
 
 class ApiClient {
   ApiClient({
     required this.sessionStore,
-    this.baseUrl = const String.fromEnvironment(
-      'API_BASE_URL',
-      defaultValue: 'http://localhost:3000',
-    ),
+    this.baseUrl = ApiConfig.baseUrl,
   });
 
   final SessionStore sessionStore;

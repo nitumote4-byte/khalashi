@@ -16,11 +16,22 @@ Requires Flutter 3.24+ (SDK not bundled in this repo).
 ```bash
 cd apps/mobile
 flutter pub get
-flutter run \
-  --dart-define=API_BASE_URL=http://10.0.2.2:3000   # Android emulator → host
+flutter run
 ```
 
-iOS simulator can use `http://localhost:3000`.
+Default `API_BASE_URL` is the live Railway API
+(`https://khalashi-api-production.up.railway.app`, no trailing slash).
+Plain `flutter run` on a physical phone hits production HTTPS.
+
+To use a local API instead:
+
+```bash
+# Android emulator → host machine
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
+
+# iOS simulator
+flutter run --dart-define=API_BASE_URL=http://localhost:3000
+```
 
 ## i18n
 
