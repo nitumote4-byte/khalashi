@@ -96,17 +96,63 @@ Replace stub WhatsApp/phone in `apps/mobile/lib/config/support_contacts.dart` be
 | `004_otp_challenges.sql` | OTP rows (future) |
 | `005_phase2_indexes.sql` | list/search indexes |
 
+## Deploy (hosted API + Postgres)
+
+Deploy configs live in-repo (no secrets committed):
+
+| File | Host |
+|------|------|
+| `apps/api/Dockerfile` + `docker-entrypoint.sh` | Any container host — runs `migrate` then `start` |
+| `render.yaml` | Render Blueprint (API + Postgres) |
+| `apps/api/railway.toml` | Railway (Dockerfile build; attach Postgres) |
+| `apps/api/fly.toml` | Fly.io (attach Fly Postgres) |
+
+**Live URL:** _pending first successful deploy — fill in after host is connected_ (example: `https://khalashi-api.onrender.com`).
+
+### Production env checklist (host secrets — never commit)
+
+| Name | Required | Soft-launch value |
+|------|----------|-------------------|
+| `DATABASE_URL` | yes | From host Postgres plugin / Blueprint |
+| `SESSION_SECRET` | yes | Long random (Render `generateValue` / `openssl rand -hex 32`) |
+| `OTP_PROVIDER` | yes | **`mock`** until India DLT + MSG91 |
+| `OTP_MOCK_CODE` | optional | `123456` for QA |
+| `NODE_ENV` | yes | `production` |
+| `PORT` | usually set by host | Host default is fine |
+| `MSG91_*` | no for soft launch | Leave unset while `OTP_PROVIDER=mock` |
+
+Migrations run automatically on container start (`docker-entrypoint.sh` → `node dist/db/migrate.js`).
+
+### Point Flutter at the hosted API
+
+```bash
+cd apps/mobile
+flutter run --dart-define=API_BASE_URL=https://YOUR-HOSTED-API.example
+```
+
+Use the public HTTPS base (no trailing slash). Emulator localhost (`http://10.0.2.2:3000`) only works for local API.
+
+### Unblock agent deploy (Nitin)
+
+Cloud Agents have **no** Railway / Render / Fly login today. Pick **one** and add a Cursor Environment secret, then re-run deploy:
+
+1. **Railway (recommended):** [railway.app](https://railway.app) → Account → Tokens → create token → Cursor Dashboard → Cloud Agents → Environments → Secrets → `RAILWAY_TOKEN`
+2. **Render:** [dashboard.render.com](https://dashboard.render.com) → Account Settings → API Keys → `RENDER_API_KEY`
+3. **Fly.io:** `fly auth token` after `fly auth login` → secret `FLY_API_TOKEN`
+
+Or deploy from the dashboard: Render → New → Blueprint → this repo; or Railway → New Project → Deploy from GitHub → root `apps/api` + Postgres plugin. Keep `OTP_PROVIDER=mock`.
+
 ## Soft-launch checklist (ops)
 
 Use this before inviting real drivers/travellers (practical soft launch — full Play publish optional).
 
 1. **Postgres**
-   - Provision managed Postgres (Neon / RDS / Supabase / etc.).
-   - Set `DATABASE_URL` in production `.env`.
-   - Run `cd apps/api && npm run migrate` against that database.
+   - Provision managed Postgres via host plugin (Render/Railway/Fly) or Neon / RDS / Supabase.
+   - Set `DATABASE_URL` in host secrets (not git).
+   - Confirm deploy entrypoint ran migrations (or `npm run migrate:prod` against that DB).
 2. **Mock vs real OTP**
-   - Dev / smoke: `OTP_PROVIDER=mock` (default; console + `debugCode`; optional `OTP_MOCK_CODE`).
-   - Production: `OTP_PROVIDER=msg91` plus `MSG91_AUTH_KEY`, `MSG91_TEMPLATE_ID`, `MSG91_SENDER_ID` via host secrets (never commit). See `apps/api/.env.example`.
+   - Soft launch / smoke: `OTP_PROVIDER=mock` (default; console + `debugCode`; optional `OTP_MOCK_CODE`).
+   - Production SMS: `OTP_PROVIDER=msg91` plus `MSG91_AUTH_KEY`, `MSG91_TEMPLATE_ID`, `MSG91_SENDER_ID` via host secrets (never commit). See `apps/api/.env.example`.
    - Smoke misconfig: `OTP_PROVIDER=msg91` with empty MSG91_* → clear `OTP_PROVIDER_MISCONFIGURED` (`apps/api/scripts/smoke-otp.sh`).
    - Keep `SESSION_SECRET` long and random in production.
 3. **India DLT (SMS)**
@@ -117,10 +163,11 @@ Use this before inviting real drivers/travellers (practical soft launch — full
    - Confirm `RATE_LIMIT_*`, `MAX_TRIPS_PER_DRIVER_PER_DAY`, `MIN_DEPART_AHEAD_MINUTES` fit your soft-launch traffic.
    - Limits are in-memory per API process (fine for single instance soft launch).
 5. **Mobile / support**
-   - Point `API_BASE_URL` at the hosted API.
+   - Point `API_BASE_URL` at the hosted API (see Deploy above).
    - Replace support stubs (WhatsApp + phone) in `support_contacts.dart`.
    - Spot-check Help & safety copy (cash, not KYC-verified, 112 for emergencies).
 6. **Smoke**
+   - `curl -sS https://YOUR-HOSTED-API/health` → `ok: true`, `otpProvider: "mock"`.
    - `./scripts/smoke-otp.sh` — mock OTP request/verify + msg91-without-keys misconfig.
    - `./scripts/smoke-phase2.sh` — book + seat race + cancel.
    - `./scripts/smoke-phase3.sh` — OTP rate limit + spam trip guards + error codes.

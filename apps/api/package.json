@@ -9,6 +9,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "migrate": "tsx src/db/migrate.ts",
+    "migrate:prod": "node dist/db/migrate.js",
+    "start:migrate": "node dist/db/migrate.js && node dist/index.js",
     "typecheck": "tsc --noEmit"
   },
   "engines": {
