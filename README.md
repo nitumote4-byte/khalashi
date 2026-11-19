@@ -78,8 +78,11 @@ Seat booking uses `SELECT … FOR UPDATE` so concurrent books cannot oversell.
 ```bash
 cd apps/mobile
 flutter pub get
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
+flutter run
 ```
+
+Defaults to the live Railway API. For a local API:
+`flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000` (Android emulator).
 
 Flows: language → phone OTP → home → **Find a ride** / **Offer a ride** → search/book or post → my bookings / my trips → **Profile** (HI/EN toggle, Help & safety, support stubs) → free cancel until departure. Cash-on-trip + safety disclaimers; HI + EN.
 
@@ -107,7 +110,7 @@ Deploy configs live in-repo (no secrets committed):
 | `apps/api/railway.toml` | Railway (Dockerfile build; attach Postgres) |
 | `apps/api/fly.toml` | Fly.io (attach Fly Postgres) |
 
-**Live URL:** _pending first successful deploy — fill in after host is connected_ (example: `https://khalashi-api.onrender.com`).
+**Live URL:** `https://khalashi-api-production.up.railway.app`
 
 ### Production env checklist (host secrets — never commit)
 
@@ -125,12 +128,15 @@ Migrations run automatically on container start (`docker-entrypoint.sh` → `nod
 
 ### Point Flutter at the hosted API
 
+The mobile app defaults to `https://khalashi-api-production.up.railway.app`
+(no trailing slash). Plain `flutter run` is enough for a physical device.
+
 ```bash
 cd apps/mobile
-flutter run --dart-define=API_BASE_URL=https://YOUR-HOSTED-API.example
+flutter run
+# optional local override:
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
 ```
-
-Use the public HTTPS base (no trailing slash). Emulator localhost (`http://10.0.2.2:3000`) only works for local API.
 
 ### Unblock agent deploy (Nitin)
 

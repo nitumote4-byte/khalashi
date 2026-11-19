@@ -2,12 +2,11 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../config/api_config.dart';
+
 /// Thin client for Phase 1 OTP auth shell.
 class AuthApi {
-  AuthApi({this.baseUrl = const String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:3000',
-  )});
+  AuthApi({this.baseUrl = ApiConfig.baseUrl});
 
   final String baseUrl;
 
