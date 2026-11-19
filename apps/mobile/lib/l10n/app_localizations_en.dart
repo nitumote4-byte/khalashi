@@ -65,6 +65,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get suggestedCities => 'Suggested';
   @override
+  String get cityPickHint => 'Pick a city from the list';
+  @override
+  String get cityNoMatchHint => 'No matching city — try another spelling';
+  @override
+  String get useCurrentLocation => 'Use current location';
+  @override
+  String locationFilled(String city) => 'Set to $city';
+  @override
+  String get locationServiceDisabled =>
+      'Turn on location services and try again';
+  @override
+  String get locationPermissionDenied => 'Location permission denied';
+  @override
+  String get locationPermissionDeniedForever =>
+      'Enable location in Settings to use this';
+  @override
+  String get locationUnavailable => 'Could not get your location';
+  @override
+  String get errorCityNotInList =>
+      'Choose a city from the list (e.g. Patna, not patn)';
+  @override
   String get searchRides => 'Search rides';
   @override
   String get offerRideInstead => 'Or offer a ride';

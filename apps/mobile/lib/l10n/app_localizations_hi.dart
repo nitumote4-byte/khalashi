@@ -65,6 +65,27 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get suggestedCities => 'सुझाव';
   @override
+  String get cityPickHint => 'सूची से शहर चुनें';
+  @override
+  String get cityNoMatchHint => 'कोई शहर नहीं मिला — दूसरी वर्तनी आज़माएँ';
+  @override
+  String get useCurrentLocation => 'वर्तमान स्थान उपयोग करें';
+  @override
+  String locationFilled(String city) => '$city सेट किया';
+  @override
+  String get locationServiceDisabled =>
+      'लोकेशन सेवा चालू करें और फिर कोशिश करें';
+  @override
+  String get locationPermissionDenied => 'लोकेशन अनुमति अस्वीकृत';
+  @override
+  String get locationPermissionDeniedForever =>
+      'इसके लिए सेटिंग्स में लोकेशन चालू करें';
+  @override
+  String get locationUnavailable => 'आपका स्थान नहीं मिल सका';
+  @override
+  String get errorCityNotInList =>
+      'सूची से शहर चुनें (जैसे Patna, patn नहीं)';
+  @override
   String get searchRides => 'सवारी खोजें';
   @override
   String get offerRideInstead => 'या सवारी दें';

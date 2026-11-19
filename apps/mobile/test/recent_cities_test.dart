@@ -14,20 +14,34 @@ void main() {
 
     await store.addRecentCity('Pune');
     await store.addRecentCity('Mumbai');
-    await store.addRecentCity('pune'); // should move Pune casing to front as 'pune'
+    await store.addRecentCity('pune'); // canonical 'Pune' moves to front
 
     var cities = await store.getRecentCities();
-    expect(cities.first, 'pune');
+    expect(cities.first, 'Pune');
     expect(cities.where((c) => c.toLowerCase() == 'pune').length, 1);
     expect(cities.contains('Mumbai'), isTrue);
 
-    for (var i = 0; i < 12; i++) {
-      await store.addRecentCity('City$i');
+    final extras = [
+      'Delhi',
+      'Patna',
+      'Jaipur',
+      'Chennai',
+      'Kolkata',
+      'Hyderabad',
+      'Ahmedabad',
+      'Surat',
+      'Indore',
+      'Nagpur',
+      'Lucknow',
+      'Kanpur',
+    ];
+    for (final city in extras) {
+      await store.addRecentCity(city);
     }
     cities = await store.getRecentCities();
     expect(cities.length, SessionStore.recentCitiesLimit);
-    expect(cities.first, 'City11');
-    expect(cities.contains('City0'), isFalse);
+    expect(cities.first, 'Kanpur');
+    expect(cities.contains('Pune'), isFalse);
   });
 
   test('addRecentCities records both From and To with destination newest', () async {
@@ -35,5 +49,16 @@ void main() {
     await store.addRecentCities(['Pune', 'Mumbai']);
     final cities = await store.getRecentCities();
     expect(cities.take(2).toList(), ['Mumbai', 'Pune']);
+  });
+
+  test('ignores free-text and drops legacy non-curated recents', () async {
+    SharedPreferences.setMockInitialValues({
+      'khalashi_recent_cities': <String>['patn', 'Pune', 'somewhere'],
+    });
+    final store = SessionStore();
+    expect(await store.getRecentCities(), ['Pune']);
+
+    await store.addRecentCity('patn');
+    expect(await store.getRecentCities(), ['Pune']);
   });
 }

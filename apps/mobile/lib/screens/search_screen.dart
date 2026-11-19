@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../data/suggested_cities.dart';
 import '../l10n/app_localizations.dart';
 import '../services/session_store.dart';
 import '../utils/format.dart';
@@ -41,15 +42,24 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<void> _search() async {
     final l10n = AppLocalizations.of(context);
-    final origin = _origin.text.trim();
-    final destination = _destination.text.trim();
-    if (origin.isEmpty || destination.isEmpty) {
+    final originRaw = _origin.text.trim();
+    final destinationRaw = _destination.text.trim();
+    if (originRaw.isEmpty || destinationRaw.isEmpty) {
       setState(() => _error = l10n.errorCitiesRequired);
       return;
     }
+    final origin = resolveCuratedCity(originRaw);
+    final destination = resolveCuratedCity(destinationRaw);
+    if (origin == null || destination == null) {
+      setState(() => _error = l10n.errorCityNotInList);
+      return;
+    }
+    _origin.text = origin;
+    _destination.text = destination;
     // Destination last so it stays newest when both are saved.
     await widget.sessionStore.addRecentCities([origin, destination]);
     if (!mounted) return;
+    setState(() => _error = null);
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => SearchResultsScreen(

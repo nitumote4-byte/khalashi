@@ -2,21 +2,26 @@ import 'package:flutter/material.dart';
 
 import '../data/suggested_cities.dart';
 import '../l10n/app_localizations.dart';
+import '../services/city_location_service.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
 
-/// From/To city field: recent cities first, then curated suggestions.
+/// From/To city field: recent (curated) first, fuzzy suggestions, optional GPS fill.
 class CityField extends StatefulWidget {
   const CityField({
     super.key,
     required this.controller,
     required this.label,
     required this.sessionStore,
+    this.showUseLocation = true,
   });
 
   final TextEditingController controller;
   final String label;
   final SessionStore sessionStore;
+
+  /// GPS affordance — useful on From; also fine on To.
+  final bool showUseLocation;
 
   @override
   State<CityField> createState() => _CityFieldState();
@@ -32,6 +37,8 @@ class _CityOption {
 class _CityFieldState extends State<CityField> {
   List<String> _recents = const [];
   final FocusNode _focusNode = FocusNode();
+  bool _locating = false;
+  final _location = CityLocationService();
 
   @override
   void initState() {
@@ -69,31 +76,60 @@ class _CityFieldState extends State<CityField> {
     final seen = <String>{};
 
     for (final city in _recents) {
-      if (q.isNotEmpty && !city.toLowerCase().contains(q)) continue;
-      final key = city.toLowerCase();
+      final canonical = resolveCuratedCity(city) ?? city;
+      if (q.isNotEmpty) {
+        final fuzzy = fuzzySuggestCities(q, limit: 32);
+        final hit = fuzzy.any((f) => f.toLowerCase() == canonical.toLowerCase()) ||
+            canonical.toLowerCase().contains(q);
+        if (!hit) continue;
+      }
+      final key = canonical.toLowerCase();
       if (seen.contains(key)) continue;
       seen.add(key);
-      recentMatches.add(_CityOption(name: city, isRecent: true));
+      recentMatches.add(_CityOption(name: canonical, isRecent: true));
     }
 
     final suggestions = <_CityOption>[];
-    for (final city in kSuggestedCities) {
-      if (q.isNotEmpty && !city.toLowerCase().contains(q)) continue;
+    final ranked = q.isEmpty
+        ? kSuggestedCities.take(12).toList()
+        : fuzzySuggestCities(query, limit: 16);
+    for (final city in ranked) {
       final key = city.toLowerCase();
       if (seen.contains(key)) continue;
       seen.add(key);
       suggestions.add(_CityOption(name: city, isRecent: false));
     }
 
-    // Empty query: show all recents, then a short slice of suggestions.
-    if (q.isEmpty) {
-      return [
-        ...recentMatches,
-        ...suggestions.take(12),
-      ];
-    }
+    return [...recentMatches, ...suggestions];
+  }
 
-    return [...recentMatches, ...suggestions.take(16)];
+  Future<void> _useCurrentLocation() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _locating = true);
+    try {
+      final city = await _location.resolveCurrentCity();
+      if (!mounted) return;
+      widget.controller.text = city;
+      widget.controller.selection = TextSelection.collapsed(offset: city.length);
+      widget.controller.notifyListeners();
+      messenger.showSnackBar(SnackBar(content: Text(l10n.locationFilled(city))));
+    } on CityLocationException catch (e) {
+      if (!mounted) return;
+      final message = switch (e.failure) {
+        CityLocationFailure.serviceDisabled => l10n.locationServiceDisabled,
+        CityLocationFailure.permissionDenied => l10n.locationPermissionDenied,
+        CityLocationFailure.permissionDeniedForever =>
+          l10n.locationPermissionDeniedForever,
+        CityLocationFailure.unavailable => l10n.locationUnavailable,
+      };
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(l10n.locationUnavailable)));
+    } finally {
+      if (mounted) setState(() => _locating = false);
+    }
   }
 
   @override
@@ -108,21 +144,54 @@ class _CityFieldState extends State<CityField> {
       },
       onSelected: (option) {
         widget.controller.text = option.name;
-        widget.controller.selection = TextSelection.collapsed(offset: option.name.length);
+        widget.controller.selection =
+            TextSelection.collapsed(offset: option.name.length);
       },
       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
         return TextField(
           controller: controller,
           focusNode: focusNode,
           textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(labelText: widget.label),
+          decoration: InputDecoration(
+            labelText: widget.label,
+            helperText: l10n.cityPickHint,
+            suffixIcon: widget.showUseLocation
+                ? IconButton(
+                    tooltip: l10n.useCurrentLocation,
+                    onPressed: _locating ? null : _useCurrentLocation,
+                    icon: _locating
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.my_location_outlined),
+                  )
+                : null,
+          ),
           onSubmitted: (_) => onFieldSubmitted(),
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
         final list = options.toList();
         if (list.isEmpty) {
-          return const SizedBox.shrink();
+          return Align(
+            alignment: Alignment.topLeft,
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  l10n.cityNoMatchHint,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: KhalashiColors.dusk.withOpacity(0.8),
+                      ),
+                ),
+              ),
+            ),
+          );
         }
 
         return Align(
@@ -172,7 +241,9 @@ class _CityFieldState extends State<CityField> {
                       ListTile(
                         dense: true,
                         leading: Icon(
-                          option.isRecent ? Icons.history : Icons.location_city_outlined,
+                          option.isRecent
+                              ? Icons.history
+                              : Icons.location_city_outlined,
                           size: 20,
                           color: KhalashiColors.deepTeal,
                         ),

@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/suggested_cities.dart';
+
 class SessionStore {
   static const _tokenKey = 'khalashi_token';
   static const _langKey = 'khalashi_lang';
@@ -41,22 +43,34 @@ class SessionStore {
     return prefs.getString(_langKey);
   }
 
-  /// Newest-first list of recently used city names (display casing preserved).
+  /// Newest-first curated cities only (legacy free-text entries are dropped).
   Future<List<String>> getRecentCities() async {
     final prefs = await SharedPreferences.getInstance();
-    return List<String>.from(prefs.getStringList(_recentCitiesKey) ?? const []);
+    final raw = prefs.getStringList(_recentCitiesKey) ?? const <String>[];
+    final out = <String>[];
+    final seen = <String>{};
+    for (final city in raw) {
+      final canonical = resolveCuratedCity(city);
+      if (canonical == null) continue;
+      final key = canonical.toLowerCase();
+      if (seen.contains(key)) continue;
+      seen.add(key);
+      out.add(canonical);
+    }
+    return out;
   }
 
-  /// Push [city] to the front of recent cities. Case-insensitive dedupe; cap at [recentCitiesLimit].
+  /// Push a curated [city] to the front. Non-curated values are ignored.
+  /// Case-insensitive dedupe; stores canonical casing; cap at [recentCitiesLimit].
   Future<void> addRecentCity(String city) async {
-    final trimmed = city.trim().replaceAll(RegExp(r'\s+'), ' ');
-    if (trimmed.isEmpty) return;
+    final canonical = resolveCuratedCity(city);
+    if (canonical == null) return;
 
     final prefs = await SharedPreferences.getInstance();
     final existing = List<String>.from(prefs.getStringList(_recentCitiesKey) ?? const []);
-    final lower = trimmed.toLowerCase();
+    final lower = canonical.toLowerCase();
     existing.removeWhere((c) => c.toLowerCase() == lower);
-    existing.insert(0, trimmed);
+    existing.insert(0, canonical);
     if (existing.length > recentCitiesLimit) {
       existing.removeRange(recentCitiesLimit, existing.length);
     }

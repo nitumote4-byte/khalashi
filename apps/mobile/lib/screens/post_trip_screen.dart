@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../data/suggested_cities.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
@@ -71,16 +72,24 @@ class _PostTripScreenState extends State<PostTripScreen> {
 
   Future<void> _publish() async {
     final l10n = AppLocalizations.of(context);
-    final origin = _origin.text.trim();
-    final destination = _destination.text.trim();
+    final originRaw = _origin.text.trim();
+    final destinationRaw = _destination.text.trim();
     final fare = int.tryParse(_fare.text.trim());
     final carModel = _carModel.text.trim();
     final numberPlate = _numberPlate.text.trim();
     final carColor = _carColor.text.trim();
-    if (origin.isEmpty || destination.isEmpty) {
+    if (originRaw.isEmpty || destinationRaw.isEmpty) {
       setState(() => _error = l10n.errorCitiesRequired);
       return;
     }
+    final origin = resolveCuratedCity(originRaw);
+    final destination = resolveCuratedCity(destinationRaw);
+    if (origin == null || destination == null) {
+      setState(() => _error = l10n.errorCityNotInList);
+      return;
+    }
+    _origin.text = origin;
+    _destination.text = destination;
     if (fare == null || fare < 0) {
       setState(() => _error = l10n.errorInvalidFare);
       return;
