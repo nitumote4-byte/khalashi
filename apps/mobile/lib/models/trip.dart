@@ -4,6 +4,8 @@ class Trip {
     required this.driverId,
     required this.origin,
     required this.destination,
+    this.pickupPoint,
+    this.dropoffPoint,
     required this.departAt,
     required this.seatsTotal,
     required this.seatsLeft,
@@ -20,6 +22,10 @@ class Trip {
   final String driverId;
   final String origin;
   final String destination;
+  /// Optional free-text boarding landmark/area (e.g. Railway Station).
+  final String? pickupPoint;
+  /// Optional free-text drop-off landmark/area (e.g. Bus Stand).
+  final String? dropoffPoint;
   final DateTime departAt;
   final int seatsTotal;
   final int seatsLeft;
@@ -35,16 +41,28 @@ class Trip {
   bool get isOpen => status == 'open';
   bool get canBook => isOpen && seatsLeft > 0 && departAt.isAfter(DateTime.now());
   bool get canCancel => isOpen && departAt.isAfter(DateTime.now());
+  bool get hasMeetingPoints =>
+      (pickupPoint != null && pickupPoint!.isNotEmpty) ||
+      (dropoffPoint != null && dropoffPoint!.isNotEmpty);
 
   /// Compact line for list / detail: "White Swift Dzire · MH12AB1234"
   String get vehicleSummary => '$carColor $carModel · $numberPlate';
 
   factory Trip.fromJson(Map<String, dynamic> json) {
+    String? optionalPoint(dynamic value) {
+      final s = value as String?;
+      if (s == null) return null;
+      final trimmed = s.trim();
+      return trimmed.isEmpty ? null : trimmed;
+    }
+
     return Trip(
       id: json['id'] as String,
       driverId: json['driverId'] as String,
       origin: json['origin'] as String,
       destination: json['destination'] as String,
+      pickupPoint: optionalPoint(json['pickupPoint']),
+      dropoffPoint: optionalPoint(json['dropoffPoint']),
       departAt: DateTime.parse(json['departAt'] as String).toLocal(),
       seatsTotal: json['seatsTotal'] as int,
       seatsLeft: json['seatsLeft'] as int,

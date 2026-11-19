@@ -122,6 +122,8 @@ type BookingWithTrip = BookingRow & {
   t_destination: string;
   t_origin_normalized: string;
   t_destination_normalized: string;
+  t_pickup_point: string | null;
+  t_dropoff_point: string | null;
   t_depart_at: Date;
   t_seats_total: number;
   t_seats_left: number;
@@ -142,6 +144,8 @@ function tripFromJoined(row: BookingWithTrip): TripRow {
     destination: row.t_destination,
     origin_normalized: row.t_origin_normalized,
     destination_normalized: row.t_destination_normalized,
+    pickup_point: row.t_pickup_point,
+    dropoff_point: row.t_dropoff_point,
     depart_at: row.t_depart_at,
     seats_total: row.t_seats_total,
     seats_left: row.t_seats_left,
@@ -161,7 +165,9 @@ const BOOKING_TRIP_SELECT = `
   u.phone AS traveller_phone, u.display_name AS traveller_display_name,
   t.id AS t_id, t.driver_id AS t_driver_id, t.origin AS t_origin,
   t.destination AS t_destination, t.origin_normalized AS t_origin_normalized,
-  t.destination_normalized AS t_destination_normalized, t.depart_at AS t_depart_at,
+  t.destination_normalized AS t_destination_normalized,
+  t.pickup_point AS t_pickup_point, t.dropoff_point AS t_dropoff_point,
+  t.depart_at AS t_depart_at,
   t.seats_total AS t_seats_total, t.seats_left AS t_seats_left, t.fare_inr AS t_fare_inr,
   t.car_model AS t_car_model, t.number_plate AS t_number_plate, t.car_color AS t_car_color,
   t.status AS t_status, t.created_at AS t_created_at, t.updated_at AS t_updated_at

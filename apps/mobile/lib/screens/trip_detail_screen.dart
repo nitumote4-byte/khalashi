@@ -67,6 +67,14 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     Text('${trip.seatsLeft} ${l10n.seatsLeft} · ${formatInr(trip.fareInr)}/${l10n.seat}'),
                     if (trip.driverDisplayName != null)
                       Text('${l10n.driver}: ${trip.driverDisplayName}'),
+                    if (trip.hasMeetingPoints) ...[
+                      const SizedBox(height: 12),
+                      Text(l10n.meetingPoints, style: Theme.of(context).textTheme.titleSmall),
+                      if (trip.pickupPoint != null)
+                        Text('${l10n.pickupPoint}: ${trip.pickupPoint}'),
+                      if (trip.dropoffPoint != null)
+                        Text('${l10n.dropoffPoint}: ${trip.dropoffPoint}'),
+                    ],
                     const SizedBox(height: 12),
                     Text(l10n.vehicleDetails, style: Theme.of(context).textTheme.titleSmall),
                     Text('${l10n.carModel}: ${trip.carModel}'),

@@ -42,6 +42,10 @@ class BookSuccessScreen extends StatelessWidget {
               Text('${trip.origin} → ${trip.destination}'),
               Text(formatDateTime(trip.departAt)),
               Text(trip.vehicleSummary),
+              if (trip.pickupPoint != null)
+                Text('${l10n.pickupPoint}: ${trip.pickupPoint}'),
+              if (trip.dropoffPoint != null)
+                Text('${l10n.dropoffPoint}: ${trip.dropoffPoint}'),
             ],
             Text('${booking.seats} ${l10n.seats} · ${l10n.preference}: ${booking.seatPreference}'),
             Text('${l10n.totalDue}: ${formatInr(booking.cashTotalInr)}'),

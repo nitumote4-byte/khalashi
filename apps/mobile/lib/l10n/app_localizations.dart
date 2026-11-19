@@ -63,6 +63,14 @@ abstract class AppLocalizations {
   String get home;
   String get origin;
   String get destination;
+  String get pickupPoint;
+  String get dropoffPoint;
+  String get meetingPointHint;
+  String get pickupPointHelper;
+  String get dropoffPointHelper;
+  String get pickupFilterHelper;
+  String get dropoffFilterHelper;
+  String get meetingPoints;
   String get recentCities;
   String get suggestedCities;
   String get cityPickHint;

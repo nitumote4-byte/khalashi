@@ -61,6 +61,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get destination => 'To (city)';
   @override
+  String get pickupPoint => 'Pickup point';
+  @override
+  String get dropoffPoint => 'Drop-off point';
+  @override
+  String get meetingPointHint => 'e.g. Railway Station, Bus Stand';
+  @override
+  String get pickupPointHelper => 'Optional — where travellers board';
+  @override
+  String get dropoffPointHelper => 'Optional — where travellers get down';
+  @override
+  String get pickupFilterHelper => 'Optional — loose match on boarding point';
+  @override
+  String get dropoffFilterHelper => 'Optional — loose match on drop-off point';
+  @override
+  String get meetingPoints => 'Meeting points';
+  @override
   String get recentCities => 'Recent';
   @override
   String get suggestedCities => 'Suggested';

@@ -71,6 +71,10 @@ class _BookSeatsScreenState extends State<BookSeatsScreen> {
                 Text('${trip.origin} → ${trip.destination}'),
                 Text(formatDateTime(trip.departAt)),
                 Text(trip.vehicleSummary),
+                if (trip.pickupPoint != null)
+                  Text('${l10n.pickupPoint}: ${trip.pickupPoint}'),
+                if (trip.dropoffPoint != null)
+                  Text('${l10n.dropoffPoint}: ${trip.dropoffPoint}'),
                 const SizedBox(height: 20),
                 Text(l10n.seats, style: Theme.of(context).textTheme.titleSmall),
                 Row(

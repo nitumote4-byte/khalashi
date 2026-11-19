@@ -56,9 +56,9 @@ India **DLT (TRAI):** register entity + OTP SMS template first; MSG91 template w
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| POST | `/trips` | Offer a ride (origin, destination, departAt, seatsTotal, fareInr) |
+| POST | `/trips` | Offer a ride (origin, destination, optional pickupPoint/dropoffPoint, departAt, seatsTotal, fareInr, vehicle) |
 | GET | `/trips/mine` | Driver’s trips |
-| GET | `/trips/search?origin=&destination=&date=YYYY-MM-DD` | Search (normalized city text, IST day) |
+| GET | `/trips/search?origin=&destination=&date=YYYY-MM-DD` | Search (normalized city text, IST day; optional pickupPoint/dropoffPoint loose ILIKE filters) |
 | GET | `/trips/:id` | Trip detail |
 | POST | `/trips/:id/cancel` | Cancel trip before start (cascades bookings) |
 | GET | `/trips/:id/bookings` | Driver: bookings on trip |

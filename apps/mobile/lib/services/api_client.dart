@@ -40,6 +40,8 @@ class ApiClient {
   Future<Trip> createTrip({
     required String origin,
     required String destination,
+    String? pickupPoint,
+    String? dropoffPoint,
     required DateTime departAt,
     required int seatsTotal,
     required int fareInr,
@@ -53,6 +55,8 @@ class ApiClient {
       body: jsonEncode({
         'origin': origin,
         'destination': destination,
+        if (pickupPoint != null && pickupPoint.isNotEmpty) 'pickupPoint': pickupPoint,
+        if (dropoffPoint != null && dropoffPoint.isNotEmpty) 'dropoffPoint': dropoffPoint,
         'departAt': departAt.toUtc().toIso8601String(),
         'seatsTotal': seatsTotal,
         'fareInr': fareInr,
@@ -79,11 +83,15 @@ class ApiClient {
     required String origin,
     required String destination,
     required String dateYmd,
+    String? pickupPoint,
+    String? dropoffPoint,
   }) async {
     final uri = Uri.parse('$baseUrl/trips/search').replace(queryParameters: {
       'origin': origin,
       'destination': destination,
       'date': dateYmd,
+      if (pickupPoint != null && pickupPoint.isNotEmpty) 'pickupPoint': pickupPoint,
+      if (dropoffPoint != null && dropoffPoint.isNotEmpty) 'dropoffPoint': dropoffPoint,
     });
     final res = await http.get(uri, headers: await _headers());
     final body = await _decode(res);
