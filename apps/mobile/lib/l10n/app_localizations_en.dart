@@ -61,6 +61,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get destination => 'To (city)';
   @override
+  String get recentCities => 'Recent';
+  @override
+  String get suggestedCities => 'Suggested';
+  @override
   String get searchRides => 'Search rides';
   @override
   String get offerRideInstead => 'Or offer a ride';

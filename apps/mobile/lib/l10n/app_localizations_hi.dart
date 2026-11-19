@@ -61,6 +61,10 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get destination => 'कहाँ तक (शहर)';
   @override
+  String get recentCities => 'हाल ही में';
+  @override
+  String get suggestedCities => 'सुझाव';
+  @override
   String get searchRides => 'सवारी खोजें';
   @override
   String get offerRideInstead => 'या सवारी दें';
