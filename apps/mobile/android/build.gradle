@@ -9,6 +9,23 @@ rootProject.layout.buildDirectory = file("../build")
 subprojects {
     project.layout.buildDirectory = file("${rootProject.layout.buildDirectory.get().asFile}/${project.name}")
 }
+
+// Force every Android library/application subproject (Flutter plugins included)
+// onto compileSdk 36. App already targets 36; plugins such as geocoding_android
+// may still pin 33 and fail :checkDebugAarMetadata when androidx AARs need 34+.
+subprojects {
+    afterEvaluate { project ->
+        if (!(project.plugins.hasPlugin("com.android.library") ||
+                project.plugins.hasPlugin("com.android.application"))) {
+            return
+        }
+        // android.newDsl=false (gradle.properties): compileSdkVersion remains valid.
+        project.android {
+            compileSdkVersion 36
+        }
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
