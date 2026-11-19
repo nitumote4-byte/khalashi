@@ -101,6 +101,14 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 ),
                 Text(formatDateTime(trip.departAt)),
                 Text('${formatInr(trip.fareInr)}/${l10n.seat}'),
+                if (trip.hasMeetingPoints) ...[
+                  const SizedBox(height: 8),
+                  Text(l10n.meetingPoints, style: Theme.of(context).textTheme.titleSmall),
+                  if (trip.pickupPoint != null)
+                    Text('${l10n.pickupPoint}: ${trip.pickupPoint}'),
+                  if (trip.dropoffPoint != null)
+                    Text('${l10n.dropoffPoint}: ${trip.dropoffPoint}'),
+                ],
                 const SizedBox(height: 8),
                 Text(l10n.vehicleDetails, style: Theme.of(context).textTheme.titleSmall),
                 Text('${l10n.carModel}: ${trip.carModel}'),

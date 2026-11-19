@@ -21,6 +21,8 @@ class _PostTripScreenState extends State<PostTripScreen> {
   late final ApiClient _api = ApiClient(sessionStore: widget.sessionStore);
   final _origin = TextEditingController();
   final _destination = TextEditingController();
+  final _pickupPoint = TextEditingController();
+  final _dropoffPoint = TextEditingController();
   final _fare = TextEditingController(text: '450');
   final _carModel = TextEditingController();
   final _numberPlate = TextEditingController();
@@ -38,6 +40,8 @@ class _PostTripScreenState extends State<PostTripScreen> {
   void dispose() {
     _origin.dispose();
     _destination.dispose();
+    _pickupPoint.dispose();
+    _dropoffPoint.dispose();
     _fare.dispose();
     _carModel.dispose();
     _numberPlate.dispose();
@@ -109,9 +113,13 @@ class _PostTripScreenState extends State<PostTripScreen> {
     });
     try {
       await widget.sessionStore.addRecentCities([origin, destination]);
+      final pickup = _pickupPoint.text.trim();
+      final dropoff = _dropoffPoint.text.trim();
       final trip = await _api.createTrip(
         origin: origin,
         destination: destination,
+        pickupPoint: pickup.isEmpty ? null : pickup,
+        dropoffPoint: dropoff.isEmpty ? null : dropoff,
         departAt: _depart,
         seatsTotal: _seats,
         fareInr: fare,
@@ -157,6 +165,26 @@ class _PostTripScreenState extends State<PostTripScreen> {
                   controller: _destination,
                   label: l10n.destination,
                   sessionStore: widget.sessionStore,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _pickupPoint,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    labelText: l10n.pickupPoint,
+                    hintText: l10n.meetingPointHint,
+                    helperText: l10n.pickupPointHelper,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _dropoffPoint,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    labelText: l10n.dropoffPoint,
+                    hintText: l10n.meetingPointHint,
+                    helperText: l10n.dropoffPointHelper,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Row(

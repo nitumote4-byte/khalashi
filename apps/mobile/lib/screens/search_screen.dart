@@ -19,6 +19,8 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final _origin = TextEditingController();
   final _destination = TextEditingController();
+  final _pickupPoint = TextEditingController();
+  final _dropoffPoint = TextEditingController();
   DateTime _date = DateTime.now();
   String? _error;
 
@@ -26,6 +28,8 @@ class _SearchScreenState extends State<SearchScreen> {
   void dispose() {
     _origin.dispose();
     _destination.dispose();
+    _pickupPoint.dispose();
+    _dropoffPoint.dispose();
     super.dispose();
   }
 
@@ -60,6 +64,8 @@ class _SearchScreenState extends State<SearchScreen> {
     await widget.sessionStore.addRecentCities([origin, destination]);
     if (!mounted) return;
     setState(() => _error = null);
+    final pickup = _pickupPoint.text.trim();
+    final dropoff = _dropoffPoint.text.trim();
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => SearchResultsScreen(
@@ -67,6 +73,8 @@ class _SearchScreenState extends State<SearchScreen> {
           origin: origin,
           destination: destination,
           dateYmd: ymd(_date),
+          pickupPoint: pickup.isEmpty ? null : pickup,
+          dropoffPoint: dropoff.isEmpty ? null : dropoff,
         ),
       ),
     );
@@ -93,6 +101,26 @@ class _SearchScreenState extends State<SearchScreen> {
                   controller: _destination,
                   label: l10n.destination,
                   sessionStore: widget.sessionStore,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _pickupPoint,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    labelText: l10n.pickupPoint,
+                    hintText: l10n.meetingPointHint,
+                    helperText: l10n.pickupFilterHelper,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _dropoffPoint,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    labelText: l10n.dropoffPoint,
+                    hintText: l10n.meetingPointHint,
+                    helperText: l10n.dropoffFilterHelper,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton(

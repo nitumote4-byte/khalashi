@@ -11,6 +11,8 @@ export type TripRow = {
   destination: string;
   origin_normalized: string;
   destination_normalized: string;
+  pickup_point: string | null;
+  dropoff_point: string | null;
   depart_at: Date;
   seats_total: number;
   seats_left: number;
@@ -31,6 +33,7 @@ const MAX_DEPART_DAYS = 90;
 const MAX_CAR_MODEL = 80;
 const MAX_NUMBER_PLATE = 32;
 const MAX_CAR_COLOR = 40;
+const MAX_MEETING_POINT = 200;
 
 function normalizeVehicleField(value: string, label: string, maxLen: number): string {
   const trimmed = value.trim().replace(/\s+/g, " ");
@@ -47,12 +50,32 @@ function normalizeVehicleField(value: string, label: string, maxLen: number): st
   return trimmed;
 }
 
+/** Optional free-text landmark/area; empty → null. No city validation. */
+export function normalizeMeetingPoint(
+  value: string | null | undefined,
+  label: string
+): string | null {
+  if (value == null) return null;
+  const trimmed = value.trim().replace(/\s+/g, " ");
+  if (!trimmed) return null;
+  if (trimmed.length > MAX_MEETING_POINT) {
+    throw httpError(
+      400,
+      `${label} must be at most ${MAX_MEETING_POINT} characters`,
+      ErrorCodes.VALIDATION_ERROR
+    );
+  }
+  return trimmed;
+}
+
 export function mapTrip(row: TripRow) {
   return {
     id: row.id,
     driverId: row.driver_id,
     origin: row.origin,
     destination: row.destination,
+    pickupPoint: row.pickup_point ?? null,
+    dropoffPoint: row.dropoff_point ?? null,
     departAt: row.depart_at.toISOString(),
     seatsTotal: row.seats_total,
     seatsLeft: row.seats_left,
@@ -72,6 +95,8 @@ export async function createTrip(input: {
   driverId: string;
   origin: string;
   destination: string;
+  pickupPoint?: string | null;
+  dropoffPoint?: string | null;
   departAt: string;
   seatsTotal: number;
   fareInr: number;
@@ -91,6 +116,8 @@ export async function createTrip(input: {
       ErrorCodes.VALIDATION_ERROR
     );
   }
+  const pickupPoint = normalizeMeetingPoint(input.pickupPoint, "Pickup point");
+  const dropoffPoint = normalizeMeetingPoint(input.dropoffPoint, "Drop-off point");
 
   const departAt = new Date(input.departAt);
   if (Number.isNaN(departAt.getTime())) {
@@ -182,9 +209,10 @@ export async function createTrip(input: {
   const { rows } = await pool.query<TripRow>(
     `INSERT INTO trips (
        driver_id, origin, destination, origin_normalized, destination_normalized,
+       pickup_point, dropoff_point,
        depart_at, seats_total, seats_left, fare_inr,
        car_model, number_plate, car_color, status
-     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, 'open')
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $10, $11, $12, $13, 'open')
      RETURNING *`,
     [
       input.driverId,
@@ -192,6 +220,8 @@ export async function createTrip(input: {
       destination,
       originNorm,
       destNorm,
+      pickupPoint,
+      dropoffPoint,
       departAt.toISOString(),
       input.seatsTotal,
       input.fareInr,
@@ -241,6 +271,10 @@ export async function searchTrips(input: {
   origin: string;
   destination: string;
   date: string; // YYYY-MM-DD (IST calendar day interpreted as UTC date window for MVP)
+  /** Optional loose filter (ILIKE substring) on driver pickup point. */
+  pickupPoint?: string | null;
+  /** Optional loose filter (ILIKE substring) on driver drop-off point. */
+  dropoffPoint?: string | null;
 }) {
   const originNorm = normalizeCity(input.origin);
   const destNorm = normalizeCity(input.destination);
@@ -259,6 +293,21 @@ export async function searchTrips(input: {
     throw httpError(400, "Invalid date", ErrorCodes.VALIDATION_ERROR);
   }
 
+  const pickupFilter = normalizeMeetingPoint(input.pickupPoint, "Pickup point");
+  const dropoffFilter = normalizeMeetingPoint(input.dropoffPoint, "Drop-off point");
+
+  const params: unknown[] = [originNorm, destNorm, start.toISOString(), end.toISOString()];
+  let pickupClause = "";
+  let dropoffClause = "";
+  if (pickupFilter) {
+    params.push(`%${pickupFilter}%`);
+    pickupClause = `AND t.pickup_point ILIKE $${params.length}`;
+  }
+  if (dropoffFilter) {
+    params.push(`%${dropoffFilter}%`);
+    dropoffClause = `AND t.dropoff_point ILIKE $${params.length}`;
+  }
+
   const { rows } = await pool.query<TripRow>(
     `SELECT t.*, u.display_name AS driver_display_name, u.phone AS driver_phone
      FROM trips t
@@ -268,8 +317,10 @@ export async function searchTrips(input: {
        AND t.destination_normalized = $2
        AND t.depart_at >= $3
        AND t.depart_at < $4
+       ${pickupClause}
+       ${dropoffClause}
      ORDER BY t.depart_at ASC, t.fare_inr ASC`,
-    [originNorm, destNorm, start.toISOString(), end.toISOString()]
+    params
   );
   return rows.map(mapTrip);
 }

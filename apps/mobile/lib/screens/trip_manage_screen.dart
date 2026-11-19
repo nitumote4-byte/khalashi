@@ -115,6 +115,10 @@ class _TripManageScreenState extends State<TripManageScreen> {
                 '${formatInr(trip.fareInr)}/seat · ${trip.seatsLeft}/${trip.seatsTotal} left · ${trip.status}',
               ),
               Text(trip.vehicleSummary),
+              if (trip.pickupPoint != null)
+                Text('${l10n.pickupPoint}: ${trip.pickupPoint}'),
+              if (trip.dropoffPoint != null)
+                Text('${l10n.dropoffPoint}: ${trip.dropoffPoint}'),
               const SizedBox(height: 8),
               Text(
                 l10n.cashCollectNote,

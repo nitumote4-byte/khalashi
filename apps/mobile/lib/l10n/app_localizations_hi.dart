@@ -61,6 +61,22 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get destination => 'कहाँ तक (शहर)';
   @override
+  String get pickupPoint => 'पिकअप बिंदु';
+  @override
+  String get dropoffPoint => 'ड्रॉप-ऑफ़ बिंदु';
+  @override
+  String get meetingPointHint => 'जैसे रेलवे स्टेशन, बस स्टैंड';
+  @override
+  String get pickupPointHelper => 'वैकल्पिक — यात्री कहाँ चढ़ेंगे';
+  @override
+  String get dropoffPointHelper => 'वैकल्पिक — यात्री कहाँ उतरेंगे';
+  @override
+  String get pickupFilterHelper => 'वैकल्पिक — पिकअप बिंदु पर ढीला मिलान';
+  @override
+  String get dropoffFilterHelper => 'वैकल्पिक — ड्रॉप-ऑफ़ बिंदु पर ढीला मिलान';
+  @override
+  String get meetingPoints => 'मिलने के स्थान';
+  @override
   String get recentCities => 'हाल ही में';
   @override
   String get suggestedCities => 'सुझाव';
