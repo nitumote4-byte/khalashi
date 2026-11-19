@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../services/session_store.dart';
 import '../utils/format.dart';
+import '../widgets/city_field.dart';
 import 'post_trip_screen.dart';
 import 'search_results_screen.dart';
 
@@ -38,7 +39,7 @@ class _SearchScreenState extends State<SearchScreen> {
     if (date != null) setState(() => _date = date);
   }
 
-  void _search() {
+  Future<void> _search() async {
     final l10n = AppLocalizations.of(context);
     final origin = _origin.text.trim();
     final destination = _destination.text.trim();
@@ -46,6 +47,9 @@ class _SearchScreenState extends State<SearchScreen> {
       setState(() => _error = l10n.errorCitiesRequired);
       return;
     }
+    // Destination last so it stays newest when both are saved.
+    await widget.sessionStore.addRecentCities([origin, destination]);
+    if (!mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => SearchResultsScreen(
@@ -69,16 +73,16 @@ class _SearchScreenState extends State<SearchScreen> {
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                TextField(
+                CityField(
                   controller: _origin,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(labelText: l10n.origin),
+                  label: l10n.origin,
+                  sessionStore: widget.sessionStore,
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                CityField(
                   controller: _destination,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(labelText: l10n.destination),
+                  label: l10n.destination,
+                  sessionStore: widget.sessionStore,
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton(

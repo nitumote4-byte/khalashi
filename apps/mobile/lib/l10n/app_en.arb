@@ -28,6 +28,8 @@
   "home": "Home",
   "origin": "From (city)",
   "destination": "To (city)",
+  "recentCities": "Recent",
+  "suggestedCities": "Suggested",
   "searchRides": "Search rides",
   "offerRideInstead": "Or offer a ride",
   "noRidesFound": "No rides for this date. Try another date or offer a ride.",

@@ -28,6 +28,8 @@
   "home": "होम",
   "origin": "कहाँ से (शहर)",
   "destination": "कहाँ तक (शहर)",
+  "recentCities": "हाल ही में",
+  "suggestedCities": "सुझाव",
   "searchRides": "सवारी खोजें",
   "offerRideInstead": "या सवारी दें",
   "noRidesFound": "इस तारीख पर कोई सवारी नहीं। दूसरी तारीख चुनें या सवारी दें।",

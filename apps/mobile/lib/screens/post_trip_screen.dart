@@ -5,6 +5,7 @@ import '../l10n/app_localizations.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
+import '../widgets/city_field.dart';
 import 'trip_manage_screen.dart';
 
 class PostTripScreen extends StatefulWidget {
@@ -98,6 +99,7 @@ class _PostTripScreenState extends State<PostTripScreen> {
       _error = null;
     });
     try {
+      await widget.sessionStore.addRecentCities([origin, destination]);
       final trip = await _api.createTrip(
         origin: origin,
         destination: destination,
@@ -136,16 +138,16 @@ class _PostTripScreenState extends State<PostTripScreen> {
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                TextField(
+                CityField(
                   controller: _origin,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(labelText: l10n.origin),
+                  label: l10n.origin,
+                  sessionStore: widget.sessionStore,
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                CityField(
                   controller: _destination,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(labelText: l10n.destination),
+                  label: l10n.destination,
+                  sessionStore: widget.sessionStore,
                 ),
                 const SizedBox(height: 12),
                 Row(

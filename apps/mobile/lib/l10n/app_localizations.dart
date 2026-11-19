@@ -63,6 +63,8 @@ abstract class AppLocalizations {
   String get home;
   String get origin;
   String get destination;
+  String get recentCities;
+  String get suggestedCities;
   String get searchRides;
   String get offerRideInstead;
   String get noRidesFound;
