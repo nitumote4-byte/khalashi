@@ -65,15 +65,21 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get dropoffPoint => 'ड्रॉप-ऑफ़ बिंदु';
   @override
-  String get meetingPointHint => 'जैसे रेलवे स्टेशन, बस स्टैंड';
+  String get pickupPointHelper => 'वैकल्पिक — मैप पर चिह्नित करें';
   @override
-  String get pickupPointHelper => 'वैकल्पिक — यात्री कहाँ चढ़ेंगे';
+  String get dropoffPointHelper => 'वैकल्पिक — मैप पर चिह्नित करें';
   @override
-  String get dropoffPointHelper => 'वैकल्पिक — यात्री कहाँ उतरेंगे';
+  String get tapToMarkOnMap => 'मैप पर चिह्नित करने के लिए टैप करें';
   @override
-  String get pickupFilterHelper => 'वैकल्पिक — पिकअप बिंदु पर ढीला मिलान';
+  String get confirmPickup => 'पिकअप की पुष्टि करें';
   @override
-  String get dropoffFilterHelper => 'वैकल्पिक — ड्रॉप-ऑफ़ बिंदु पर ढीला मिलान';
+  String get confirmDropoff => 'ड्रॉप-ऑफ़ की पुष्टि करें';
+  @override
+  String get mapPinHint => 'मैप घुमाएँ ताकि पिन सही जगह पर हो';
+  @override
+  String get mapPinMoving => 'जगह सेट करने के लिए छोड़ें…';
+  @override
+  String get mapPinLookingUp => 'पता खोज रहे हैं…';
   @override
   String get meetingPoints => 'मिलने के स्थान';
   @override

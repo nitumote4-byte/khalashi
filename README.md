@@ -56,9 +56,9 @@ India **DLT (TRAI):** register entity + OTP SMS template first; MSG91 template w
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| POST | `/trips` | Offer a ride (origin, destination, optional pickupPoint/dropoffPoint, departAt, seatsTotal, fareInr, vehicle) |
+| POST | `/trips` | Offer a ride (origin, destination, optional map pickup/drop labels + lat/lng, departAt, seatsTotal, fareInr, vehicle) |
 | GET | `/trips/mine` | Driver’s trips |
-| GET | `/trips/search?origin=&destination=&date=YYYY-MM-DD` | Search (normalized city text, IST day; optional pickupPoint/dropoffPoint loose ILIKE filters) |
+| GET | `/trips/search?origin=&destination=&date=YYYY-MM-DD` | Search by From/To cities + IST day |
 | GET | `/trips/:id` | Trip detail |
 | POST | `/trips/:id/cancel` | Cancel trip before start (cascades bookings) |
 | GET | `/trips/:id/bookings` | Driver: bookings on trip |
@@ -71,7 +71,8 @@ Errors return `{ ok: false, error, code }` (e.g. `RATE_LIMITED`, `SEATS_FULL`, `
 
 Seat booking uses `SELECT … FOR UPDATE` so concurrent books cannot oversell.
 
-**Not in v1 API:** UPI, KYC, maps, chat, ratings.
+**Not in v1 API:** UPI, KYC, chat, ratings. Offer Ride uses an in-app map pin
+picker (flutter_map + free Carto/OSM tiles) for optional pickup/drop meeting points.
 
 ## Quick start — Mobile
 
@@ -98,6 +99,9 @@ Replace stub WhatsApp/phone in `apps/mobile/lib/config/support_contacts.dart` be
 | `003_bookings.sql` | seat bookings |
 | `004_otp_challenges.sql` | OTP rows (future) |
 | `005_phase2_indexes.sql` | list/search indexes |
+| `006_trip_vehicle.sql` | car model / plate / color |
+| `007_trip_meeting_points.sql` | pickup/drop address labels |
+| `008_trip_meeting_coords.sql` | pickup/drop lat/lng pins |
 
 ## Deploy (hosted API + Postgres)
 

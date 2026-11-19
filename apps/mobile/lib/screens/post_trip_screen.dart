@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/meeting_point.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
 import '../widgets/city_field.dart';
+import '../widgets/meeting_point_field.dart';
+import 'map_pin_picker_screen.dart';
 import 'trip_manage_screen.dart';
 
 class PostTripScreen extends StatefulWidget {
@@ -21,12 +24,12 @@ class _PostTripScreenState extends State<PostTripScreen> {
   late final ApiClient _api = ApiClient(sessionStore: widget.sessionStore);
   final _origin = TextEditingController();
   final _destination = TextEditingController();
-  final _pickupPoint = TextEditingController();
-  final _dropoffPoint = TextEditingController();
   final _fare = TextEditingController(text: '450');
   final _carModel = TextEditingController();
   final _numberPlate = TextEditingController();
   final _carColor = TextEditingController();
+  MeetingPoint? _pickup;
+  MeetingPoint? _dropoff;
   DateTime _depart = DateTime.now().add(const Duration(days: 1, hours: 1)).copyWith(
         second: 0,
         millisecond: 0,
@@ -40,8 +43,6 @@ class _PostTripScreenState extends State<PostTripScreen> {
   void dispose() {
     _origin.dispose();
     _destination.dispose();
-    _pickupPoint.dispose();
-    _dropoffPoint.dispose();
     _fare.dispose();
     _carModel.dispose();
     _numberPlate.dispose();
@@ -70,6 +71,30 @@ class _PostTripScreenState extends State<PostTripScreen> {
     if (time == null) return;
     setState(() {
       _depart = DateTime(_depart.year, _depart.month, _depart.day, time.hour, time.minute);
+    });
+  }
+
+  Future<void> _pickMeetingPoint({required bool pickup}) async {
+    final l10n = AppLocalizations.of(context);
+    final hintCity = pickup ? _origin.text.trim() : _destination.text.trim();
+    final result = await Navigator.of(context).push<MeetingPoint>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => MapPinPickerScreen(
+          title: pickup ? l10n.pickupPoint : l10n.dropoffPoint,
+          confirmLabel: pickup ? l10n.confirmPickup : l10n.confirmDropoff,
+          initial: pickup ? _pickup : _dropoff,
+          hintCity: hintCity.isEmpty ? null : hintCity,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      if (pickup) {
+        _pickup = result;
+      } else {
+        _dropoff = result;
+      }
     });
   }
 
@@ -113,13 +138,15 @@ class _PostTripScreenState extends State<PostTripScreen> {
     });
     try {
       await widget.sessionStore.addRecentCities([origin, destination]);
-      final pickup = _pickupPoint.text.trim();
-      final dropoff = _dropoffPoint.text.trim();
       final trip = await _api.createTrip(
         origin: origin,
         destination: destination,
-        pickupPoint: pickup.isEmpty ? null : pickup,
-        dropoffPoint: dropoff.isEmpty ? null : dropoff,
+        pickupPoint: _pickup?.label,
+        dropoffPoint: _dropoff?.label,
+        pickupLat: _pickup?.lat,
+        pickupLng: _pickup?.lng,
+        dropoffLat: _dropoff?.lat,
+        dropoffLng: _dropoff?.lng,
         departAt: _depart,
         seatsTotal: _seats,
         fareInr: fare,
@@ -167,24 +194,22 @@ class _PostTripScreenState extends State<PostTripScreen> {
                   sessionStore: widget.sessionStore,
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: _pickupPoint,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(
-                    labelText: l10n.pickupPoint,
-                    hintText: l10n.meetingPointHint,
-                    helperText: l10n.pickupPointHelper,
-                  ),
+                MeetingPointField(
+                  label: l10n.pickupPoint,
+                  helperText: l10n.pickupPointHelper,
+                  emptyHint: l10n.tapToMarkOnMap,
+                  value: _pickup,
+                  onTap: () => _pickMeetingPoint(pickup: true),
+                  onClear: _pickup == null ? null : () => setState(() => _pickup = null),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: _dropoffPoint,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(
-                    labelText: l10n.dropoffPoint,
-                    hintText: l10n.meetingPointHint,
-                    helperText: l10n.dropoffPointHelper,
-                  ),
+                MeetingPointField(
+                  label: l10n.dropoffPoint,
+                  helperText: l10n.dropoffPointHelper,
+                  emptyHint: l10n.tapToMarkOnMap,
+                  value: _dropoff,
+                  onTap: () => _pickMeetingPoint(pickup: false),
+                  onClear: _dropoff == null ? null : () => setState(() => _dropoff = null),
                 ),
                 const SizedBox(height: 12),
                 Row(

@@ -65,15 +65,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dropoffPoint => 'Drop-off point';
   @override
-  String get meetingPointHint => 'e.g. Railway Station, Bus Stand';
+  String get pickupPointHelper => 'Optional — tap to mark on the map';
   @override
-  String get pickupPointHelper => 'Optional — where travellers board';
+  String get dropoffPointHelper => 'Optional — tap to mark on the map';
   @override
-  String get dropoffPointHelper => 'Optional — where travellers get down';
+  String get tapToMarkOnMap => 'Tap to mark on map';
   @override
-  String get pickupFilterHelper => 'Optional — loose match on boarding point';
+  String get confirmPickup => 'Confirm pickup';
   @override
-  String get dropoffFilterHelper => 'Optional — loose match on drop-off point';
+  String get confirmDropoff => 'Confirm drop-off';
+  @override
+  String get mapPinHint => 'Move the map so the pin sits on the exact spot';
+  @override
+  String get mapPinMoving => 'Release to set location…';
+  @override
+  String get mapPinLookingUp => 'Looking up address…';
   @override
   String get meetingPoints => 'Meeting points';
   @override
