@@ -80,6 +80,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get mapPinMoving => 'जगह सेट करने के लिए छोड़ें…';
   @override
   String get mapPinLookingUp => 'पता खोज रहे हैं…';
+
+  @override
+  String get mapTilesUnavailable =>
+      'मैप लोड नहीं हो सका। कनेक्शन जाँचें और फिर कोशिश करें।';
+
+  @override
+  String get mapTilesRetry => 'फिर कोशिश करें';
   @override
   String get meetingPoints => 'मिलने के स्थान';
   @override

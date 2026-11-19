@@ -73,6 +73,8 @@ abstract class AppLocalizations {
   String get mapPinHint;
   String get mapPinMoving;
   String get mapPinLookingUp;
+  String get mapTilesUnavailable;
+  String get mapTilesRetry;
   String get meetingPoints;
   String get recentCities;
   String get suggestedCities;

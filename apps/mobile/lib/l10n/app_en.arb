@@ -38,6 +38,8 @@
   "mapPinHint": "Move the map so the pin sits on the exact spot",
   "mapPinMoving": "Release to set location…",
   "mapPinLookingUp": "Looking up address…",
+  "mapTilesUnavailable": "Map couldn’t load. Check your connection and try again.",
+  "mapTilesRetry": "Retry",
   "meetingPoints": "Meeting points",
   "recentCities": "Recent",
   "suggestedCities": "Suggested",
