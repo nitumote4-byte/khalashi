@@ -80,6 +80,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapPinMoving => 'Release to set location…';
   @override
   String get mapPinLookingUp => 'Looking up address…';
+
+  @override
+  String get mapTilesUnavailable =>
+      'Map couldn’t load. Check your connection and try again.';
+
+  @override
+  String get mapTilesRetry => 'Retry';
   @override
   String get meetingPoints => 'Meeting points';
   @override

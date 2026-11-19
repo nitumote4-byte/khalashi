@@ -36,16 +36,16 @@ flutter run --dart-define=API_BASE_URL=http://localhost:3000
 
 ### Map tiles (Offer Ride pin picker)
 
-Uses **flutter_map** with free **Carto Voyager** tiles (OpenStreetMap data).
-No Google Maps key and no paid placeholder is required for local runs.
-
-Optional override (e.g. MapTiler for higher production traffic):
+Uses **flutter_map** with free **Esri World Street Map** tiles by default
+(OpenStreetMap.org as HTTP fallback). No Google / MapTiler key is required.
 
 ```bash
-flutter run --dart-define=MAP_TILE_URL_TEMPLATE=https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=YOUR_KEY
+flutter run
 ```
 
-See `lib/config/map_tiles.dart`.
+Optional: point at another raster template you already have credentials for
+via `--dart-define=MAP_TILE_URL_TEMPLATE=…` (see `lib/config/map_tiles.dart`).
+Do not paste a placeholder `key=YOUR_KEY` — those CDNs return error tiles.
 
 ## i18n
 

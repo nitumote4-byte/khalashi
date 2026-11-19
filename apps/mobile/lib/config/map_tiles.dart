@@ -1,13 +1,18 @@
 /// Free map tiles for the pin picker (no Google Maps / paid key required).
 ///
-/// Default: Carto Voyager via cartocdn (OSM data). Fine for local/dev and soft
-/// launch; for heavier production traffic, set a MapTiler (or similar) URL:
+/// Default: Esri World Street Map (raster, no API key). Carto’s public
+/// `basemaps.cartocdn.com` CDN now serves watermark stubs (nearly blank tiles
+/// with an “API key” mark) instead of real map imagery, which made Offer Ride
+/// look empty on Android.
+///
+/// Optional override for a provider you already have a key for:
 ///
 /// ```
-/// flutter run --dart-define=MAP_TILE_URL_TEMPLATE=https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=YOUR_KEY
+/// flutter run --dart-define=MAP_TILE_URL_TEMPLATE=https://…/{z}/{x}/{y}.png
 /// ```
 ///
-/// Leave unset to use the free Carto template below (no placeholder key needed).
+/// Leave unset to use the free default below. Do **not** paste a MapTiler /
+/// Stadia URL with a placeholder key — those providers return error tiles.
 class MapTiles {
   MapTiles._();
 
@@ -17,21 +22,28 @@ class MapTiles {
     defaultValue: '',
   );
 
-  /// Soft, modern light basemap (Carto Voyager). No API key.
+  /// Esri World Street Map. Template uses `{z}/{y}/{x}` (ArcGIS tile order).
   static const String defaultUrlTemplate =
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
 
-  static const List<String> defaultSubdomains = ['a', 'b', 'c', 'd'];
+  /// OSM raster fallback when the primary URL fails (needs a proper User-Agent).
+  static const String fallbackUrlTemplate =
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   static String get urlTemplate =>
       _override.trim().isEmpty ? defaultUrlTemplate : _override.trim();
 
-  /// Subdomains only apply to the default Carto template.
-  static List<String> get subdomains =>
-      _override.trim().isEmpty ? defaultSubdomains : const <String>[];
+  /// OSM fallback only when using the built-in Esri default (not a custom URL).
+  static String? get fallbackUrl =>
+      _override.trim().isEmpty ? fallbackUrlTemplate : null;
 
-  static const String userAgentPackageName = 'com.khalashi.app';
+  /// Only used when the override still has `{s}` (rare). Esri/OSM need none.
+  static List<String> get subdomains => const <String>[];
+
+  /// Must match Android `applicationId` / iOS bundle id for OSM tile policy.
+  static const String userAgentPackageName =
+      'com.nitinmote.khalashi.khalashi';
 
   static const String attribution =
-      '© OpenStreetMap contributors © CARTO';
+      '© Esri © OpenStreetMap contributors';
 }

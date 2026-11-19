@@ -42,6 +42,9 @@ class _MapPinPickerScreenState extends State<MapPinPickerScreen> {
   String? _addressLabel;
   bool _geocoding = false;
   bool _moving = false;
+  bool _tilesFailed = false;
+  int _tileLayerGeneration = 0;
+  int _tileErrorCount = 0;
   Timer? _geocodeDebounce;
 
   @override
@@ -182,6 +185,22 @@ class _MapPinPickerScreenState extends State<MapPinPickerScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  void _onTileError(TileImage tile, Object error, StackTrace? stackTrace) {
+    _tileErrorCount++;
+    // A few misses are normal while panning; a burst means the basemap is down.
+    if (_tileErrorCount < 4 || _tilesFailed) return;
+    if (!mounted) return;
+    setState(() => _tilesFailed = true);
+  }
+
+  void _retryTiles() {
+    setState(() {
+      _tilesFailed = false;
+      _tileErrorCount = 0;
+      _tileLayerGeneration++;
+    });
+  }
+
   void _confirm() {
     final label = (_addressLabel ?? _coordFallback(_center)).trim();
     Navigator.of(context).pop(
@@ -218,13 +237,54 @@ class _MapPinPickerScreenState extends State<MapPinPickerScreen> {
             ),
             children: [
               TileLayer(
+                key: ValueKey('basemap-$_tileLayerGeneration'),
                 urlTemplate: MapTiles.urlTemplate,
+                fallbackUrl: MapTiles.fallbackUrl,
                 subdomains: MapTiles.subdomains,
                 userAgentPackageName: MapTiles.userAgentPackageName,
-                retinaMode: RetinaMode.isHighDensity(context),
+                // Esri/OSM templates have no `{r}`; simulated retina just
+                // over-fetches zoom+1 and is unnecessary for pin picking.
+                retinaMode: false,
+                errorTileCallback: _onTileError,
+                evictErrorTileStrategy: EvictErrorTileStrategy.dispose,
               ),
             ],
           ),
+          if (_tilesFailed)
+            Positioned(
+              left: 16,
+              right: 16,
+              top: MediaQuery.paddingOf(context).top + 64,
+              child: Material(
+                color: Colors.white.withOpacity(0.96),
+                elevation: 4,
+                borderRadius: BorderRadius.circular(14),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.wifi_off_rounded,
+                        color: KhalashiColors.dusk,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          l10n.mapTilesUnavailable,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: KhalashiColors.dusk,
+                              ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _retryTiles,
+                        child: Text(l10n.mapTilesRetry),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           // Fixed center pin (map pans underneath).
           IgnorePointer(
             child: Center(

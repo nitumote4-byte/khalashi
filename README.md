@@ -72,7 +72,7 @@ Errors return `{ ok: false, error, code }` (e.g. `RATE_LIMITED`, `SEATS_FULL`, `
 Seat booking uses `SELECT … FOR UPDATE` so concurrent books cannot oversell.
 
 **Not in v1 API:** UPI, KYC, chat, ratings. Offer Ride uses an in-app map pin
-picker (flutter_map + free Carto/OSM tiles) for optional pickup/drop meeting points.
+picker (flutter_map + free Esri/OSM tiles) for optional pickup/drop meeting points.
 
 ## Quick start — Mobile
 

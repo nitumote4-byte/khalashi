@@ -38,6 +38,8 @@
   "mapPinHint": "मैप घुमाएँ ताकि पिन सही जगह पर हो",
   "mapPinMoving": "जगह सेट करने के लिए छोड़ें…",
   "mapPinLookingUp": "पता खोज रहे हैं…",
+  "mapTilesUnavailable": "मैप लोड नहीं हो सका। कनेक्शन जाँचें और फिर कोशिश करें।",
+  "mapTilesRetry": "फिर कोशिश करें",
   "meetingPoints": "मिलने के स्थान",
   "recentCities": "हाल ही में",
   "suggestedCities": "सुझाव",
