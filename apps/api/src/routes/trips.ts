@@ -42,6 +42,22 @@ const createBody = z.object({
   pickupLng: optionalCoord,
   dropoffLat: optionalCoord,
   dropoffLng: optionalCoord,
+  distanceMeters: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(20_000_000)
+    .optional()
+    .nullable()
+    .transform((v) => (v == null ? undefined : v)),
+  durationSeconds: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(7 * 24 * 3600)
+    .optional()
+    .nullable()
+    .transform((v) => (v == null ? undefined : v)),
   departAt: z.string().min(1),
   seatsTotal: z.number().int(),
   fareInr: z.number().int(),
@@ -96,6 +112,8 @@ tripsRouter.post("/trips", requireAuth, tripPostLimit, async (req, res) => {
       pickupLng: body.pickupLng,
       dropoffLat: body.dropoffLat,
       dropoffLng: body.dropoffLng,
+      distanceMeters: body.distanceMeters,
+      durationSeconds: body.durationSeconds,
       departAt: body.departAt,
       seatsTotal: body.seatsTotal,
       fareInr: body.fareInr,

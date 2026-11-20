@@ -17,6 +17,8 @@ export type TripRow = {
   pickup_lng: number | string | null;
   dropoff_lat: number | string | null;
   dropoff_lng: number | string | null;
+  distance_meters: number | string | null;
+  duration_seconds: number | string | null;
   depart_at: Date;
   seats_total: number;
   seats_left: number;
@@ -78,6 +80,11 @@ function asFiniteNumber(value: number | string | null | undefined): number | nul
   return Number.isFinite(n) ? n : null;
 }
 
+function asOptionalInt(value: number | string | null | undefined): number | null {
+  const n = asFiniteNumber(value);
+  return n == null ? null : Math.round(n);
+}
+
 /** Optional WGS84 coordinate pair. Both null, or both valid numbers. */
 export function normalizeMeetingCoords(
   lat: number | null | undefined,
@@ -103,6 +110,29 @@ export function normalizeMeetingCoords(
   return { lat: lat!, lng: lng! };
 }
 
+/** Optional non-negative integer; null/undefined → null. */
+function normalizeOptionalInt(
+  value: number | null | undefined,
+  label: string,
+  min: number,
+  max: number
+): number | null {
+  if (value == null || (typeof value === "number" && Number.isNaN(value))) {
+    return null;
+  }
+  if (!Number.isFinite(value) || !Number.isInteger(value)) {
+    throw httpError(400, `${label} must be an integer`, ErrorCodes.VALIDATION_ERROR);
+  }
+  if (value < min || value > max) {
+    throw httpError(
+      400,
+      `${label} must be between ${min} and ${max}`,
+      ErrorCodes.VALIDATION_ERROR
+    );
+  }
+  return value;
+}
+
 export function mapTrip(row: TripRow) {
   return {
     id: row.id,
@@ -115,6 +145,8 @@ export function mapTrip(row: TripRow) {
     pickupLng: asFiniteNumber(row.pickup_lng),
     dropoffLat: asFiniteNumber(row.dropoff_lat),
     dropoffLng: asFiniteNumber(row.dropoff_lng),
+    distanceMeters: asOptionalInt(row.distance_meters),
+    durationSeconds: asOptionalInt(row.duration_seconds),
     departAt: row.depart_at.toISOString(),
     seatsTotal: row.seats_total,
     seatsLeft: row.seats_left,
@@ -140,6 +172,8 @@ export async function createTrip(input: {
   pickupLng?: number | null;
   dropoffLat?: number | null;
   dropoffLng?: number | null;
+  distanceMeters?: number | null;
+  durationSeconds?: number | null;
   departAt: string;
   seatsTotal: number;
   fareInr: number;
@@ -170,6 +204,18 @@ export async function createTrip(input: {
     input.dropoffLat,
     input.dropoffLng,
     "Drop-off"
+  );
+  const distanceMeters = normalizeOptionalInt(
+    input.distanceMeters,
+    "Distance",
+    0,
+    20_000_000
+  );
+  const durationSeconds = normalizeOptionalInt(
+    input.durationSeconds,
+    "Duration",
+    0,
+    7 * 24 * 3600
   );
 
   const departAt = new Date(input.departAt);
@@ -263,11 +309,12 @@ export async function createTrip(input: {
     `INSERT INTO trips (
        driver_id, origin, destination, origin_normalized, destination_normalized,
        pickup_point, dropoff_point, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng,
+       distance_meters, duration_seconds,
        depart_at, seats_total, seats_left, fare_inr,
        car_model, number_plate, car_color, status
      ) VALUES (
        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
-       $12, $13, $13, $14, $15, $16, $17, 'open'
+       $12, $13, $14, $15, $15, $16, $17, $18, $19, 'open'
      )
      RETURNING *`,
     [
@@ -282,6 +329,8 @@ export async function createTrip(input: {
       pickupCoords.lng,
       dropoffCoords.lat,
       dropoffCoords.lng,
+      distanceMeters,
+      durationSeconds,
       departAt.toISOString(),
       input.seatsTotal,
       input.fareInr,

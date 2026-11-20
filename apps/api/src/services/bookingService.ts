@@ -128,6 +128,8 @@ type BookingWithTrip = BookingRow & {
   t_pickup_lng: number | string | null;
   t_dropoff_lat: number | string | null;
   t_dropoff_lng: number | string | null;
+  t_distance_meters: number | string | null;
+  t_duration_seconds: number | string | null;
   t_depart_at: Date;
   t_seats_total: number;
   t_seats_left: number;
@@ -154,6 +156,8 @@ function tripFromJoined(row: BookingWithTrip): TripRow {
     pickup_lng: row.t_pickup_lng,
     dropoff_lat: row.t_dropoff_lat,
     dropoff_lng: row.t_dropoff_lng,
+    distance_meters: row.t_distance_meters,
+    duration_seconds: row.t_duration_seconds,
     depart_at: row.t_depart_at,
     seats_total: row.t_seats_total,
     seats_left: row.t_seats_left,
@@ -177,6 +181,7 @@ const BOOKING_TRIP_SELECT = `
   t.pickup_point AS t_pickup_point, t.dropoff_point AS t_dropoff_point,
   t.pickup_lat AS t_pickup_lat, t.pickup_lng AS t_pickup_lng,
   t.dropoff_lat AS t_dropoff_lat, t.dropoff_lng AS t_dropoff_lng,
+  t.distance_meters AS t_distance_meters, t.duration_seconds AS t_duration_seconds,
   t.depart_at AS t_depart_at,
   t.seats_total AS t_seats_total, t.seats_left AS t_seats_left, t.fare_inr AS t_fare_inr,
   t.car_model AS t_car_model, t.number_plate AS t_number_plate, t.car_color AS t_car_color,

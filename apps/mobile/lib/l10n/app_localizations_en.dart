@@ -75,6 +75,51 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get confirmDropoff => 'Confirm drop-off';
   @override
+  String get leavingFromQuestion => 'Where are you leaving from?';
+  @override
+  String get headingToQuestion => 'Where are you heading?';
+  @override
+  String get cityOrMapHint => 'Search a city or choose an exact spot on the map';
+  @override
+  String get chooseOnMap => 'Choose on map';
+  @override
+  String get confirmLeaving => 'Confirm leaving point';
+  @override
+  String get confirmHeading => 'Confirm destination';
+  @override
+  String get leavingPoint => 'Leaving from';
+  @override
+  String get headingPoint => 'Heading to';
+  @override
+  String get routePreviewTitle => 'Your route';
+  @override
+  String get routeDistance => 'Distance';
+  @override
+  String get routeDuration => 'Travel time';
+  @override
+  String get routeEstimateFallback =>
+      'Approximate — road routing unavailable, showing estimated distance.';
+  @override
+  String get continueToTripDetails => 'Continue to trip details';
+  @override
+  String get editRoutePoints => 'Edit locations';
+  @override
+  String get tripDetailsTitle => 'Trip details';
+  @override
+  String distanceKm(String km) => '$km km';
+  @override
+  String durationMinutesOnly(int minutes) => '$minutes min';
+  @override
+  String durationHoursOnly(int hours) => '$hours h';
+  @override
+  String durationHoursMinutes(int hours, int minutes) =>
+      '$hours h $minutes min';
+  @override
+  String get errorPointsRequired => 'Set both leaving and heading points';
+  @override
+  String get errorSamePoint =>
+      'Leaving and heading points must be farther apart';
+  @override
   String get mapPinHint => 'Move the map so the pin sits on the exact spot';
   @override
   String get mapPinMoving => 'Release to set location…';

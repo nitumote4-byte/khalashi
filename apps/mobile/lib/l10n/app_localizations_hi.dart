@@ -75,6 +75,50 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get confirmDropoff => 'ड्रॉप-ऑफ़ की पुष्टि करें';
   @override
+  String get leavingFromQuestion => 'आप कहाँ से निकल रहे हैं?';
+  @override
+  String get headingToQuestion => 'आप कहाँ जा रहे हैं?';
+  @override
+  String get cityOrMapHint => 'शहर खोजें या मैप पर सटीक जगह चुनें';
+  @override
+  String get chooseOnMap => 'मैप पर चुनें';
+  @override
+  String get confirmLeaving => 'प्रस्थान बिंदु की पुष्टि करें';
+  @override
+  String get confirmHeading => 'गंतव्य की पुष्टि करें';
+  @override
+  String get leavingPoint => 'प्रस्थान';
+  @override
+  String get headingPoint => 'गंतव्य';
+  @override
+  String get routePreviewTitle => 'आपका रूट';
+  @override
+  String get routeDistance => 'दूरी';
+  @override
+  String get routeDuration => 'यात्रा समय';
+  @override
+  String get routeEstimateFallback =>
+      'अनुमानित — सड़क रूटिंग उपलब्ध नहीं, अनुमानित दूरी दिख रही है।';
+  @override
+  String get continueToTripDetails => 'ट्रिप विवरण पर जाएँ';
+  @override
+  String get editRoutePoints => 'स्थान संपादित करें';
+  @override
+  String get tripDetailsTitle => 'ट्रिप विवरण';
+  @override
+  String distanceKm(String km) => '$km किमी';
+  @override
+  String durationMinutesOnly(int minutes) => '$minutes मिनट';
+  @override
+  String durationHoursOnly(int hours) => '$hours घं';
+  @override
+  String durationHoursMinutes(int hours, int minutes) =>
+      '$hours घं $minutes मिनट';
+  @override
+  String get errorPointsRequired => 'प्रस्थान और गंतव्य दोनों सेट करें';
+  @override
+  String get errorSamePoint => 'प्रस्थान और गंतव्य अलग-अलग होने चाहिए';
+  @override
   String get mapPinHint => 'मैप घुमाएँ ताकि पिन सही जगह पर हो';
   @override
   String get mapPinMoving => 'जगह सेट करने के लिए छोड़ें…';

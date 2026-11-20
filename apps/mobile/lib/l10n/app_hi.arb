@@ -35,6 +35,58 @@
   "tapToMarkOnMap": "मैप पर चिह्नित करने के लिए टैप करें",
   "confirmPickup": "पिकअप की पुष्टि करें",
   "confirmDropoff": "ड्रॉप-ऑफ़ की पुष्टि करें",
+  "leavingFromQuestion": "आप कहाँ से निकल रहे हैं?",
+  "headingToQuestion": "आप कहाँ जा रहे हैं?",
+  "cityOrMapHint": "शहर खोजें या मैप पर सटीक जगह चुनें",
+  "chooseOnMap": "मैप पर चुनें",
+  "confirmLeaving": "प्रस्थान बिंदु की पुष्टि करें",
+  "confirmHeading": "गंतव्य की पुष्टि करें",
+  "leavingPoint": "प्रस्थान",
+  "headingPoint": "गंतव्य",
+  "routePreviewTitle": "आपका रूट",
+  "routeDistance": "दूरी",
+  "routeDuration": "यात्रा समय",
+  "routeEstimateFallback": "अनुमानित — सड़क रूटिंग उपलब्ध नहीं, अनुमानित दूरी दिख रही है।",
+  "continueToTripDetails": "ट्रिप विवरण पर जाएँ",
+  "editRoutePoints": "स्थान संपादित करें",
+  "tripDetailsTitle": "ट्रिप विवरण",
+  "distanceKm": "{km} किमी",
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "durationMinutesOnly": "{minutes} मिनट",
+  "@durationMinutesOnly": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursOnly": "{hours} घं",
+  "@durationHoursOnly": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours} घं {minutes} मिनट",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "errorPointsRequired": "प्रस्थान और गंतव्य दोनों सेट करें",
+  "errorSamePoint": "प्रस्थान और गंतव्य अलग-अलग होने चाहिए",
   "mapPinHint": "मैप घुमाएँ ताकि पिन सही जगह पर हो",
   "mapPinMoving": "जगह सेट करने के लिए छोड़ें…",
   "mapPinLookingUp": "पता खोज रहे हैं…",

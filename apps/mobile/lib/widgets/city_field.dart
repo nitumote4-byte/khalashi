@@ -14,6 +14,7 @@ class CityField extends StatefulWidget {
     required this.label,
     required this.sessionStore,
     this.showUseLocation = true,
+    this.onCitySelected,
   });
 
   final TextEditingController controller;
@@ -22,6 +23,9 @@ class CityField extends StatefulWidget {
 
   /// GPS affordance — useful on From; also fine on To.
   final bool showUseLocation;
+
+  /// Called when the user picks a suggestion, submits, or fills via GPS.
+  final ValueChanged<String>? onCitySelected;
 
   @override
   State<CityField> createState() => _CityFieldState();
@@ -116,6 +120,7 @@ class _CityFieldState extends State<CityField> {
       widget.controller.text = city;
       widget.controller.selection = TextSelection.collapsed(offset: city.length);
       widget.controller.notifyListeners();
+      widget.onCitySelected?.call(city);
       messenger.showSnackBar(SnackBar(content: Text(l10n.locationFilled(city))));
     } on CityLocationException catch (e) {
       if (!mounted) return;
@@ -149,6 +154,7 @@ class _CityFieldState extends State<CityField> {
         widget.controller.text = option.name;
         widget.controller.selection =
             TextSelection.collapsed(offset: option.name.length);
+        widget.onCitySelected?.call(option.name);
       },
       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
         return TextField(
@@ -172,7 +178,11 @@ class _CityFieldState extends State<CityField> {
                   )
                 : null,
           ),
-          onSubmitted: (_) => onFieldSubmitted(),
+          onSubmitted: (_) {
+            onFieldSubmitted();
+            final text = controller.text.trim();
+            if (text.isNotEmpty) widget.onCitySelected?.call(text);
+          },
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
