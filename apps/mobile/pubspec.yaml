@@ -19,6 +19,9 @@ dependencies:
   geocoding: ^4.0.0
   flutter_map: ^7.0.2
   latlong2: ^0.9.1
+  # Soft-launch ID verification: camera capture + optional on-device OCR
+  image_picker: ^1.1.2
+  google_mlkit_text_recognition: ^0.14.0
 
 dev_dependencies:
   flutter_test:

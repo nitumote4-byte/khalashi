@@ -3,6 +3,7 @@ import { z } from "zod";
 import { env } from "../config/env";
 import { clientIp, rateLimit } from "../middleware/rateLimit";
 import { getSession, logout, normalizePhone, requestOtp, verifyOtp } from "../services/authService";
+import { getUserVerificationStatus } from "../services/verificationService";
 import { ErrorCodes, httpError } from "../utils/errors";
 import { sendError } from "../utils/respond";
 
@@ -64,21 +65,27 @@ authRouter.post("/auth/otp/verify", otpIpLimit, async (req, res) => {
   }
 });
 
-authRouter.get("/auth/me", (req, res) => {
+authRouter.get("/auth/me", async (req, res) => {
   const auth = getSession(bearer(req));
   if (!auth) {
     sendError(res, httpError(401, "Unauthorized", ErrorCodes.UNAUTHORIZED));
     return;
   }
-  res.json({
-    ok: true,
-    user: {
-      id: auth.user.id,
-      phone: auth.user.phone,
-      displayName: auth.user.displayName,
-      language: auth.user.language,
-    },
-  });
+  try {
+    const verificationStatus = await getUserVerificationStatus(auth.user.id);
+    res.json({
+      ok: true,
+      user: {
+        id: auth.user.id,
+        phone: auth.user.phone,
+        displayName: auth.user.displayName,
+        language: auth.user.language,
+        verificationStatus,
+      },
+    });
+  } catch (err) {
+    sendError(res, err);
+  }
 });
 
 authRouter.post("/auth/logout", (req, res) => {

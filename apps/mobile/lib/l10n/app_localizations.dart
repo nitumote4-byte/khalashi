@@ -203,6 +203,35 @@ abstract class AppLocalizations {
   String get errorNetworkHint;
   String get errorRateLimited;
   String get errorUnauthorized;
+  String get verifyIdTitle;
+  String get verifyIdCta;
+  String get verifyIdIntro;
+  String get verifyIdType;
+  String get idTypeAadhaar;
+  String get idTypeDl;
+  String get idTypeVoter;
+  String get verifyPhotoHint;
+  String get verifyCapture;
+  String get verifyGallery;
+  String get verifyFullName;
+  String get verifyIdNumber;
+  String get verifyManualEditHint;
+  String get verifySubmit;
+  String get verifySubmitted;
+  String get verifyNeedPhoto;
+  String get verifyNeedFields;
+  String get verifyBadgeUnverified;
+  String get verifyBadgePending;
+  String get verifyBadgeVerified;
+  String get verifyBadgeRejected;
+  String get verifyRequiredTitle;
+  String get verifyRequiredBody;
+  String get offerRideNeedsVerify;
+  String get cameraPermissionDenied;
+  String get ocrFilledHint;
+  String get ocrNoTextHint;
+  String get ocrUnavailable;
+  String get notNow;
 }
 
 class _AppLocalizationsDelegate

@@ -15,6 +15,7 @@ import {
   listMyTrips,
   searchTrips,
 } from "../services/tripService";
+import { assertCanOfferRide } from "../services/verificationService";
 import { sendError } from "../utils/respond";
 
 export const tripsRouter = Router();
@@ -102,6 +103,9 @@ tripsRouter.post("/trips", requireAuth, tripPostLimit, async (req, res) => {
   try {
     const body = createBody.parse(req.body);
     const user = (req as AuthedRequest).user;
+    // Soft-launch: require ID submit (pending_review or verified) before Offer Ride.
+    // Find Ride / book stays open without verification.
+    await assertCanOfferRide(user.id);
     const trip = await createTrip({
       driverId: user.id,
       origin: body.origin,

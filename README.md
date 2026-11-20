@@ -6,7 +6,7 @@ BlaBlaCar-style India carpool for **Nitin Mote Tours & Travel**.
 
 Stack: **Flutter** mobile · **Node (Express)** API · **PostgreSQL**.
 
-This repo includes **Phase 0–2** (auth + trips/book/cancel) and **Phase 3 soft-launch harden** (rate limits, spam guards, Help/safety, ops checklist). Still **no** UPI / KYC / maps / chat / ratings / deep admin.
+This repo includes **Phase 0–2** (auth + trips/book/cancel), **Phase 3 soft-launch harden**, and **soft-launch gov ID verification** (photo + manual review — no DigiLocker/UIDAI). Still **no** UPI / paid KYC APIs / chat / ratings / deep admin UI.
 
 ## Monorepo layout
 
@@ -71,7 +71,34 @@ Errors return `{ ok: false, error, code }` (e.g. `RATE_LIMITED`, `SEATS_FULL`, `
 
 Seat booking uses `SELECT … FOR UPDATE` so concurrent books cannot oversell.
 
-**Not in v1 API:** UPI, KYC, chat, ratings. Offer Ride uses an in-app map pin
+### Soft-launch ID verification (photo + manual review)
+
+No DigiLocker / UIDAI. User submits gov ID front photo + name/number → `pending_review`. Ops approve/reject via admin secret.
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/verification/me` | Bearer | Current status + masked fields |
+| POST | `/verification/submit` | Bearer | `{ idType, fullName, idNumber, imageBase64 }` → pending |
+| GET | `/admin/verifications/pending` | `X-Admin-Secret` | List pending |
+| GET | `/admin/verifications/:id/image` | admin | JPEG/PNG bytes |
+| POST | `/admin/verifications/:id/approve` | admin | Mark verified |
+| POST | `/admin/verifications/:id/reject` | admin | `{ reviewNote? }` → rejected |
+
+`idType`: `aadhaar` \| `dl` \| `voter`. Images stored under `UPLOAD_DIR` (default `/app/uploads` in Docker). Mount a Railway volume there so photos survive redeploys.
+
+**Offer Ride gate:** `POST /trips` requires `pending_review` or `verified`. Find Ride / book stays open without ID. Client shows the same gate with a prompt to verify.
+
+Admin curl example:
+
+```bash
+export API=https://khalashi-api-production.up.railway.app
+export ADMIN_SECRET=…   # set on Railway service
+curl -s -H "X-Admin-Secret: $ADMIN_SECRET" "$API/admin/verifications/pending"
+curl -s -X POST -H "X-Admin-Secret: $ADMIN_SECRET" -H "Content-Type: application/json" \
+  -d '{}' "$API/admin/verifications/<id>/approve"
+```
+
+**Not in v1 API:** UPI, DigiLocker, chat, ratings. Offer Ride uses an in-app map pin
 picker (flutter_map + free Esri/OSM tiles) for optional pickup/drop meeting points.
 
 ## Quick start — Mobile
@@ -85,7 +112,7 @@ flutter run
 Defaults to the live Railway API. For a local API:
 `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000` (Android emulator).
 
-Flows: language → phone OTP → home → **Find a ride** / **Offer a ride** → search/book or post → my bookings / my trips → **Profile** (HI/EN toggle, Help & safety, support stubs) → free cancel until departure. Cash-on-trip + safety disclaimers; HI + EN.
+Flows: language → phone OTP → home → **Find a ride** / **Offer a ride** (ID submit required) → search/book or post → my bookings / my trips → **Profile** (verification badge, HI/EN, Help & safety) → free cancel until departure. Soft-launch ID: camera + optional ML Kit OCR autofill + manual review. Cash-on-trip + safety disclaimers; HI + EN.
 
 Replace stub WhatsApp/phone in `apps/mobile/lib/config/support_contacts.dart` before soft launch.
 
@@ -102,6 +129,8 @@ Replace stub WhatsApp/phone in `apps/mobile/lib/config/support_contacts.dart` be
 | `006_trip_vehicle.sql` | car model / plate / color |
 | `007_trip_meeting_points.sql` | pickup/drop address labels |
 | `008_trip_meeting_coords.sql` | pickup/drop lat/lng pins |
+| `009_trip_route_stats.sql` | route distance / duration |
+| `010_id_verification.sql` | users.verification_status + id_verifications |
 
 ## Deploy (hosted API + Postgres)
 
@@ -127,8 +156,11 @@ Deploy configs live in-repo (no secrets committed):
 | `NODE_ENV` | yes | `production` |
 | `PORT` | usually set by host | Host default is fine |
 | `MSG91_*` | no for soft launch | Leave unset while `OTP_PROVIDER=mock` |
+| `ADMIN_SECRET` | yes for ID review | Shared secret for `/admin/verifications/*` |
+| `UPLOAD_DIR` | optional | Default `/app/uploads` in Docker — mount a volume for persistence |
+| `ID_IMAGE_MAX_BYTES` | optional | Default `2097152` (2 MiB) |
 
-Migrations run automatically on container start (`docker-entrypoint.sh` → `node dist/db/migrate.js`).
+Migrations run automatically on container start (`docker-entrypoint.sh` → `node dist/db/migrate.js`). After merging ID verification, **redeploy the API** so migration `010_id_verification.sql` applies and set `ADMIN_SECRET`.
 
 ### Point Flutter at the hosted API
 

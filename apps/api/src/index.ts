@@ -6,17 +6,20 @@ import { authRouter } from "./routes/auth";
 import { bookingsRouter } from "./routes/bookings";
 import { healthRouter } from "./routes/health";
 import { tripsRouter } from "./routes/trips";
+import { verificationRouter } from "./routes/verification";
 import { HttpError } from "./utils/errors";
 import { sendError } from "./utils/respond";
 
 const app = express();
 
 app.use(cors());
-app.use(express.json({ limit: "64kb" }));
+// 3mb covers soft-launch base64 ID photos (max ~2 MiB decoded + JSON overhead).
+app.use(express.json({ limit: "3mb" }));
 app.use(requestLog);
 
 app.use(healthRouter);
 app.use(authRouter);
+app.use(verificationRouter);
 app.use(tripsRouter);
 app.use(bookingsRouter);
 

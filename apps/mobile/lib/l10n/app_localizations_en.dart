@@ -367,4 +367,69 @@ class AppLocalizationsEn extends AppLocalizations {
       'Too many requests. Wait a moment and try again.';
   @override
   String get errorUnauthorized => 'Please sign in again.';
+  @override
+  String get verifyIdTitle => 'ID verification';
+  @override
+  String get verifyIdCta => 'Verify ID';
+  @override
+  String get verifyIdIntro =>
+      'Photograph the front of your Aadhaar, driving licence, or voter ID. We review it manually — no DigiLocker. Find a ride stays open; Offer a ride needs a submitted ID.';
+  @override
+  String get verifyIdType => 'ID type';
+  @override
+  String get idTypeAadhaar => 'Aadhaar';
+  @override
+  String get idTypeDl => 'DL';
+  @override
+  String get idTypeVoter => 'Voter';
+  @override
+  String get verifyPhotoHint => 'Capture the front of your government ID';
+  @override
+  String get verifyCapture => 'Camera';
+  @override
+  String get verifyGallery => 'Gallery';
+  @override
+  String get verifyFullName => 'Name on ID';
+  @override
+  String get verifyIdNumber => 'ID number';
+  @override
+  String get verifyManualEditHint =>
+      'OCR may autofill — please check and edit before submit.';
+  @override
+  String get verifySubmit => 'Submit for review';
+  @override
+  String get verifySubmitted => 'Submitted — pending review';
+  @override
+  String get verifyNeedPhoto => 'Capture or choose an ID photo first';
+  @override
+  String get verifyNeedFields => 'Enter name and ID number';
+  @override
+  String get verifyBadgeUnverified => 'Unverified';
+  @override
+  String get verifyBadgePending => 'Pending review';
+  @override
+  String get verifyBadgeVerified => 'Verified';
+  @override
+  String get verifyBadgeRejected => 'Rejected';
+  @override
+  String get verifyRequiredTitle => 'Verify your ID first';
+  @override
+  String get verifyRequiredBody =>
+      'To offer a ride, submit a government ID photo for manual review. You can still find and book rides without it.';
+  @override
+  String get offerRideNeedsVerify => 'Submit ID first — then post a trip';
+  @override
+  String get cameraPermissionDenied =>
+      'Camera permission needed to photograph your ID';
+  @override
+  String get ocrFilledHint =>
+      'OCR filled what it could — please confirm the fields.';
+  @override
+  String get ocrNoTextHint =>
+      'Couldn’t read text — enter name and ID number manually.';
+  @override
+  String get ocrUnavailable =>
+      'On-device OCR isn’t available here — enter fields manually.';
+  @override
+  String get notNow => 'Not now';
 }

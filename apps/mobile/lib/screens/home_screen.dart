@@ -1,18 +1,92 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/verification.dart';
+import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
+import '../widgets/verification_badge.dart';
 import 'my_bookings_screen.dart';
 import 'my_trips_screen.dart';
 import 'post_trip_screen.dart';
 import 'profile_screen.dart';
 import 'search_screen.dart';
+import 'verify_id_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.sessionStore});
 
   final SessionStore sessionStore;
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final ApiClient _api = ApiClient(sessionStore: widget.sessionStore);
+  VerificationStatus _status = VerificationStatus.unverified;
+  bool _statusLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshStatus();
+  }
+
+  Future<void> _refreshStatus() async {
+    try {
+      final status = await _api.getVerificationStatus();
+      if (!mounted) return;
+      setState(() {
+        _status = status;
+        _statusLoaded = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _statusLoaded = true);
+    }
+  }
+
+  Future<void> _openOfferRide() async {
+    final l10n = AppLocalizations.of(context);
+    if (!_status.canOfferRide) {
+      final go = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.verifyRequiredTitle),
+          content: Text(l10n.verifyRequiredBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.notNow),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.verifyIdCta),
+            ),
+          ],
+        ),
+      );
+      if (go != true || !mounted) return;
+      final result = await Navigator.of(context).push<VerificationInfo>(
+        MaterialPageRoute<VerificationInfo>(
+          builder: (_) => VerifyIdScreen(sessionStore: widget.sessionStore),
+        ),
+      );
+      await _refreshStatus();
+      if (!mounted) return;
+      final next = result?.status ?? _status;
+      if (!next.canOfferRide) return;
+    }
+
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PostTripScreen(sessionStore: widget.sessionStore),
+      ),
+    );
+    await _refreshStatus();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,15 +119,21 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (_statusLoaded)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: VerificationBadge(status: _status, compact: true),
+                      ),
                     IconButton(
                       tooltip: l10n.profile,
-                      onPressed: () {
-                        Navigator.of(context).push(
+                      onPressed: () async {
+                        await Navigator.of(context).push(
                           MaterialPageRoute<void>(
                             builder: (_) =>
-                                ProfileScreen(sessionStore: sessionStore),
+                                ProfileScreen(sessionStore: widget.sessionStore),
                           ),
                         );
+                        await _refreshStatus();
                       },
                       icon: const Icon(Icons.person_outline),
                     ),
@@ -79,7 +159,8 @@ class HomeScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => SearchScreen(sessionStore: sessionStore),
+                        builder: (_) =>
+                            SearchScreen(sessionStore: widget.sessionStore),
                       ),
                     );
                   },
@@ -87,15 +168,11 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 _HubAction(
                   title: l10n.offerRide,
-                  subtitle: l10n.offerRideSubtitle,
+                  subtitle: _status.canOfferRide
+                      ? l10n.offerRideSubtitle
+                      : l10n.offerRideNeedsVerify,
                   icon: Icons.directions_car_filled_outlined,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => PostTripScreen(sessionStore: sessionStore),
-                      ),
-                    );
-                  },
+                  onTap: _openOfferRide,
                 ),
                 const Spacer(),
                 Row(
@@ -106,7 +183,7 @@ class HomeScreen extends StatelessWidget {
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
                             builder: (_) =>
-                                MyBookingsScreen(sessionStore: sessionStore),
+                                MyBookingsScreen(sessionStore: widget.sessionStore),
                           ),
                         );
                       },
@@ -117,7 +194,7 @@ class HomeScreen extends StatelessWidget {
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
                             builder: (_) =>
-                                MyTripsScreen(sessionStore: sessionStore),
+                                MyTripsScreen(sessionStore: widget.sessionStore),
                           ),
                         );
                       },

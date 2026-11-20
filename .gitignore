@@ -3,6 +3,8 @@ node_modules/
 dist/
 .env
 *.log
+apps/api/uploads/
+apps/api/uploads/
 
 # Flutter / Dart
 .dart_tool/
