@@ -216,6 +216,12 @@ abstract class AppLocalizations {
   String get verifyFullName;
   String get verifyIdNumber;
   String get verifyManualEditHint;
+  String get verifySelfieTitle;
+  String get verifySelfieGuidance;
+  String get verifySelfieHint;
+  String get verifyTakeSelfie;
+  String get verifyRetakeSelfie;
+  String get verifyNeedSelfie;
   String get verifySubmit;
   String get verifySubmitted;
   String get verifyNeedPhoto;

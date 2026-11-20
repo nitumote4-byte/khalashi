@@ -373,7 +373,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifyIdCta => 'Verify ID';
   @override
   String get verifyIdIntro =>
-      'Photograph the front of your Aadhaar, driving licence, or voter ID. We review it manually — no DigiLocker. Find a ride stays open; Offer a ride needs a submitted ID.';
+      'Photograph the front of your Aadhaar, driving licence, or voter ID, then take a clear selfie. We match them manually — no DigiLocker or paid face API. Find a ride stays open; Offer a ride needs a submitted ID.';
   @override
   String get verifyIdType => 'ID type';
   @override
@@ -396,6 +396,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifyManualEditHint =>
       'OCR may autofill — please check and edit before submit.';
   @override
+  String get verifySelfieTitle => 'Take a selfie';
+  @override
+  String get verifySelfieGuidance =>
+      'Look straight at the front camera. Face fully visible, good light, no sunglasses or mask — so we can match you to your ID photo.';
+  @override
+  String get verifySelfieHint => 'Front-camera selfie required';
+  @override
+  String get verifyTakeSelfie => 'Take selfie';
+  @override
+  String get verifyRetakeSelfie => 'Retake selfie';
+  @override
+  String get verifyNeedSelfie =>
+      'Take a clear front-camera selfie before submit';
+  @override
   String get verifySubmit => 'Submit for review';
   @override
   String get verifySubmitted => 'Submitted — pending review';
@@ -415,12 +429,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifyRequiredTitle => 'Verify your ID first';
   @override
   String get verifyRequiredBody =>
-      'To offer a ride, submit a government ID photo for manual review. You can still find and book rides without it.';
+      'To offer a ride, submit a government ID photo and selfie for manual review. You can still find and book rides without it.';
   @override
   String get offerRideNeedsVerify => 'Submit ID first — then post a trip';
   @override
   String get cameraPermissionDenied =>
-      'Camera permission needed to photograph your ID';
+      'Camera permission needed for ID photo and selfie';
   @override
   String get ocrFilledHint =>
       'OCR filled what it could — please confirm the fields.';

@@ -370,7 +370,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get verifyIdCta => 'आईडी सत्यापित करें';
   @override
   String get verifyIdIntro =>
-      'आधार, ड्राइविंग लाइसेंस या वोटर आईडी का सामने वाला फ़ोटो लें। हम मैन्युअल जाँच करते हैं — DigiLocker नहीं। सवारी ढूँढना खुला रहता है; सवारी ऑफ़र करने के लिए आईडी जमा करनी होगी।';
+      'आधार, ड्राइविंग लाइसेंस या वोटर आईडी का सामने वाला फ़ोटो लें, फिर साफ़ सेल्फ़ी लें। हम मैन्युअल मिलाते हैं — DigiLocker या पेड फेस API नहीं। सवारी ढूँढना खुला रहता है; सवारी ऑफ़र करने के लिए आईडी जमा करनी होगी।';
   @override
   String get verifyIdType => 'आईडी प्रकार';
   @override
@@ -393,6 +393,20 @@ class AppLocalizationsHi extends AppLocalizations {
   String get verifyManualEditHint =>
       'OCR भर सकता है — जमा करने से पहले जाँचें और सुधारें।';
   @override
+  String get verifySelfieTitle => 'सेल्फ़ी लें';
+  @override
+  String get verifySelfieGuidance =>
+      'सामने वाले कैमरे की ओर सीधा देखें। चेहरा पूरा दिखे, अच्छी रोशनी हो, धूप का चश्मा या मास्क न हो — ताकि हम आपकी आईडी फ़ोटो से मिला सकें।';
+  @override
+  String get verifySelfieHint => 'सामने वाले कैमरे से सेल्फ़ी ज़रूरी है';
+  @override
+  String get verifyTakeSelfie => 'सेल्फ़ी लें';
+  @override
+  String get verifyRetakeSelfie => 'सेल्फ़ी फिर लें';
+  @override
+  String get verifyNeedSelfie =>
+      'जमा करने से पहले साफ़ फ्रंट-कैमरा सेल्फ़ी लें';
+  @override
   String get verifySubmit => 'समीक्षा के लिए जमा करें';
   @override
   String get verifySubmitted => 'जमा हो गया — समीक्षा लंबित';
@@ -412,13 +426,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get verifyRequiredTitle => 'पहले आईडी सत्यापित करें';
   @override
   String get verifyRequiredBody =>
-      'सवारी ऑफ़र करने के लिए सरकारी आईडी फ़ोटो जमा करें। बिना इसके सवारी ढूँढना और बुक करना चलता रहेगा।';
+      'सवारी ऑफ़र करने के लिए सरकारी आईडी फ़ोटो और सेल्फ़ी जमा करें। बिना इसके सवारी ढूँढना और बुक करना चलता रहेगा।';
   @override
   String get offerRideNeedsVerify =>
       'पहले आईडी जमा करें — फिर ट्रिप पोस्ट करें';
   @override
   String get cameraPermissionDenied =>
-      'आईडी फ़ोटो के लिए कैमरा अनुमति चाहिए';
+      'आईडी फ़ोटो और सेल्फ़ी के लिए कैमरा अनुमति चाहिए';
   @override
   String get ocrFilledHint => 'OCR ने जो पढ़ा भर दिया — कृपया जाँच लें।';
   @override

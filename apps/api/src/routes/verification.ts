@@ -7,6 +7,7 @@ import { rateLimit } from "../middleware/rateLimit";
 import {
   getMyVerification,
   getVerificationImage,
+  getVerificationSelfie,
   listPendingVerifications,
   reviewVerification,
   submitVerification,
@@ -15,11 +16,14 @@ import { sendError } from "../utils/respond";
 
 export const verificationRouter = Router();
 
+const maxB64 = Math.ceil((env.ID_IMAGE_MAX_BYTES * 4) / 3) + 128;
+
 const submitBody = z.object({
   idType: z.enum(["aadhaar", "dl", "voter"]),
   fullName: z.string().min(2).max(120),
   idNumber: z.string().min(4).max(64),
-  imageBase64: z.string().min(32).max(Math.ceil((env.ID_IMAGE_MAX_BYTES * 4) / 3) + 128),
+  imageBase64: z.string().min(32).max(maxB64),
+  selfieBase64: z.string().min(32).max(maxB64),
 });
 
 const reviewBody = z.object({
@@ -47,6 +51,7 @@ verificationRouter.post(
         fullName: body.fullName,
         idNumber: body.idNumber,
         imageBase64: body.imageBase64,
+        selfieBase64: body.selfieBase64,
       });
       res.status(201).json({ ok: true, verification });
     } catch (err) {
@@ -85,6 +90,22 @@ verificationRouter.get(
   async (req, res) => {
     try {
       const { buffer, mime, filename } = await getVerificationImage(req.params.id);
+      res.setHeader("Content-Type", mime);
+      res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
+      res.send(buffer);
+    } catch (err) {
+      sendError(res, err);
+    }
+  }
+);
+
+/** Selfie for manual match against ID photo — open alongside /image. */
+verificationRouter.get(
+  "/admin/verifications/:id/selfie",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { buffer, mime, filename } = await getVerificationSelfie(req.params.id);
       res.setHeader("Content-Type", mime);
       res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
       res.send(buffer);
