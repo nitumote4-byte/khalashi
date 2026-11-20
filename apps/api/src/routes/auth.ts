@@ -11,6 +11,7 @@ import {
   updateEmergencyContact,
   verifyOtp,
 } from "../services/authService";
+import { getRatingSummary } from "../services/ratingService";
 import { getUserVerificationStatus } from "../services/verificationService";
 import { ErrorCodes, httpError } from "../utils/errors";
 import { sendError } from "../utils/respond";
@@ -37,14 +38,21 @@ function bearer(req: { headers: { authorization?: string } }): string | undefine
   return h.slice(7);
 }
 
-function publicUser(user: {
-  id: string;
-  phone: string;
-  displayName: string | null;
-  language: "en" | "hi";
-  emergencyContactName: string | null;
-  emergencyContactPhone: string | null;
-}, verificationStatus?: string) {
+function publicUser(
+  user: {
+    id: string;
+    phone: string;
+    displayName: string | null;
+    language: "en" | "hi";
+    emergencyContactName: string | null;
+    emergencyContactPhone: string | null;
+  },
+  extras?: {
+    verificationStatus?: string;
+    ratingAvg?: number;
+    ratingCount?: number;
+  }
+) {
   return {
     id: user.id,
     phone: user.phone,
@@ -52,7 +60,11 @@ function publicUser(user: {
     language: user.language,
     emergencyContactName: user.emergencyContactName,
     emergencyContactPhone: user.emergencyContactPhone,
-    ...(verificationStatus ? { verificationStatus } : {}),
+    ...(extras?.verificationStatus
+      ? { verificationStatus: extras.verificationStatus }
+      : {}),
+    ...(extras?.ratingAvg != null ? { ratingAvg: extras.ratingAvg } : {}),
+    ...(extras?.ratingCount != null ? { ratingCount: extras.ratingCount } : {}),
   };
 }
 
@@ -104,10 +116,17 @@ authRouter.get("/auth/me", async (req, res) => {
     return;
   }
   try {
-    const verificationStatus = await getUserVerificationStatus(auth.user.id);
+    const [verificationStatus, rating] = await Promise.all([
+      getUserVerificationStatus(auth.user.id),
+      getRatingSummary(auth.user.id),
+    ]);
     res.json({
       ok: true,
-      user: publicUser(auth.user, verificationStatus),
+      user: publicUser(auth.user, {
+        verificationStatus,
+        ratingAvg: rating.ratingAvg,
+        ratingCount: rating.ratingCount,
+      }),
     });
   } catch (err) {
     sendError(res, err);

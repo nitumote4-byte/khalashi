@@ -21,8 +21,16 @@ Node (Express + TypeScript) API for Khalashi — auth + trips + bookings + soft-
 | GET | `/bookings/mine` | Traveller bookings |
 | GET | `/bookings/:id` | Detail |
 | POST | `/bookings/:id/cancel` | Free cancel until start; restores seats |
+| GET | `/ratings/booking/:bookingId` | Rating eligibility for booking |
+| POST | `/ratings` | `{ bookingId, stars, comment? }` after trip start |
+| POST | `/reports` | Report user for admin review |
+| GET | `/admin/reports` | `X-Admin-Secret` — list reports |
+| POST | `/blocks` | Soft-block a user |
+| DELETE | `/blocks/:userId` | Unblock |
+| GET | `/blocks/mine` | List my blocks |
 
 Seat booking uses a row lock (`FOR UPDATE`) so concurrent requests cannot oversell.
+Blocked pairs cannot book each other; search hides blocked drivers.
 
 Errors: `{ "ok": false, "error": "...", "code": "RATE_LIMITED" | "SEATS_FULL" | ... }`.
 

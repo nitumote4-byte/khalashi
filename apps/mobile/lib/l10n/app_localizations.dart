@@ -262,6 +262,40 @@ abstract class AppLocalizations {
   String get sosShareFooter;
   String get sosCall112;
   String get sosDisclaimer;
+  String get yourRating;
+  String get ratingCta;
+  String get ratingTitle;
+  String ratingSubtitle(String name);
+  String get ratingCommentOptional;
+  String get ratingSubmit;
+  String get ratingSubmitting;
+  String get ratingSubmitted;
+  String get ratingPickStars;
+  String ratingYourStars(int stars);
+  String get reportOrBlock;
+  String get reportUser;
+  String reportUserSubtitle(String name);
+  String get reportReason;
+  String get reportReasonHarassment;
+  String get reportReasonUnsafe;
+  String get reportReasonNoShow;
+  String get reportReasonSpam;
+  String get reportReasonFraud;
+  String get reportReasonOther;
+  String get reportDetailsOptional;
+  String get reportSubmit;
+  String get reportSubmitting;
+  String get reportSubmitted;
+  String get reportPickReason;
+  String get blockUser;
+  String get blockUserHint;
+  String blockUserConfirm(String name);
+  String get blockUserDone;
+  String get unblockUser;
+  String get unblockUserDone;
+  String get blockedUsersTitle;
+  String get blockedUsersSubtitle;
+  String get blockedUsersEmpty;
 }
 
 class _AppLocalizationsDelegate

@@ -500,4 +500,75 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sosDisclaimer =>
       'Free soft-launch SOS — no paid SMS. Share uses your phone’s share sheet (WhatsApp, Messages, etc.).';
+  @override
+  String get yourRating => 'Your rating';
+  @override
+  String get ratingCta => 'Rate this user';
+  @override
+  String get ratingTitle => 'Leave a rating';
+  @override
+  String ratingSubtitle(String name) => 'How was your trip with $name?';
+  @override
+  String get ratingCommentOptional => 'Comment (optional)';
+  @override
+  String get ratingSubmit => 'Submit rating';
+  @override
+  String get ratingSubmitting => 'Submitting…';
+  @override
+  String get ratingSubmitted => 'Thanks — rating saved';
+  @override
+  String get ratingPickStars => 'Choose 1 to 5 stars';
+  @override
+  String ratingYourStars(int stars) => 'You rated $stars★';
+  @override
+  String get reportOrBlock => 'Report or block';
+  @override
+  String get reportUser => 'Report user';
+  @override
+  String reportUserSubtitle(String name) =>
+      'Tell us what went wrong with $name';
+  @override
+  String get reportReason => 'Reason';
+  @override
+  String get reportReasonHarassment => 'Harassment / abuse';
+  @override
+  String get reportReasonUnsafe => 'Unsafe driving';
+  @override
+  String get reportReasonNoShow => 'No-show';
+  @override
+  String get reportReasonSpam => 'Spam / fake trip';
+  @override
+  String get reportReasonFraud => 'Fraud / payment issue';
+  @override
+  String get reportReasonOther => 'Other';
+  @override
+  String get reportDetailsOptional => 'Details (optional)';
+  @override
+  String get reportSubmit => 'Submit report';
+  @override
+  String get reportSubmitting => 'Submitting…';
+  @override
+  String get reportSubmitted => 'Report sent for review';
+  @override
+  String get reportPickReason => 'Pick a reason';
+  @override
+  String get blockUser => 'Block user';
+  @override
+  String get blockUserHint =>
+      'They won’t see your trips and can’t book with you';
+  @override
+  String blockUserConfirm(String name) =>
+      'Block $name? You won’t see each other’s trips or bookings.';
+  @override
+  String get blockUserDone => 'User blocked';
+  @override
+  String get unblockUser => 'Unblock';
+  @override
+  String get unblockUserDone => 'User unblocked';
+  @override
+  String get blockedUsersTitle => 'Blocked users';
+  @override
+  String get blockedUsersSubtitle => 'Manage who you’ve blocked';
+  @override
+  String get blockedUsersEmpty => 'You haven’t blocked anyone';
 }

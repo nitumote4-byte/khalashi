@@ -22,6 +22,8 @@ class Trip {
     required this.status,
     this.driverDisplayName,
     this.driverPhone,
+    this.driverRatingAvg = 0,
+    this.driverRatingCount = 0,
   });
 
   final String id;
@@ -50,7 +52,10 @@ class Trip {
   final String status;
   final String? driverDisplayName;
   final String? driverPhone;
+  final double driverRatingAvg;
+  final int driverRatingCount;
 
+  bool get hasDriverRating => driverRatingCount > 0;
   bool get isFull => seatsLeft <= 0;
   bool get isOpen => status == 'open';
   bool get canBook => isOpen && seatsLeft > 0 && departAt.isAfter(DateTime.now());
@@ -106,6 +111,10 @@ class Trip {
       status: json['status'] as String,
       driverDisplayName: json['driverDisplayName'] as String?,
       driverPhone: json['driverPhone'] as String?,
+      driverRatingAvg: (json['driverRatingAvg'] is num)
+          ? (json['driverRatingAvg'] as num).toDouble()
+          : double.tryParse('${json['driverRatingAvg'] ?? ''}') ?? 0,
+      driverRatingCount: optionalInt(json['driverRatingCount']) ?? 0,
     );
   }
 }

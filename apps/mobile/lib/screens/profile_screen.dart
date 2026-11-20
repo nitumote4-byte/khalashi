@@ -7,7 +7,9 @@ import '../models/verification.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
+import '../widgets/star_rating.dart';
 import '../widgets/verification_badge.dart';
+import 'blocked_users_screen.dart';
 import 'help_screen.dart';
 import 'phone_screen.dart';
 import 'verify_id_screen.dart';
@@ -166,6 +168,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             },
           ),
+          if (_profile?.hasRating == true) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Text(l10n.yourRating, style: Theme.of(context).textTheme.bodyMedium),
+                const SizedBox(width: 8),
+                RatingBadge(
+                  avg: _profile!.ratingAvg,
+                  count: _profile!.ratingCount,
+                ),
+              ],
+            ),
+          ],
           const Divider(),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -181,6 +196,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               );
               await _refreshStatus();
+            },
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.block, color: KhalashiColors.deepTeal),
+            title: Text(l10n.blockedUsersTitle),
+            subtitle: Text(l10n.blockedUsersSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      BlockedUsersScreen(sessionStore: widget.sessionStore),
+                ),
+              );
             },
           ),
           const Divider(),

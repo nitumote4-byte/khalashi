@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/trip.dart';
+import '../models/trust.dart';
 import '../models/user_profile.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
 import '../utils/format.dart';
 import '../widgets/async_state.dart';
+import '../widgets/rate_user_sheet.dart';
+import '../widgets/report_block_sheet.dart';
 import '../widgets/sos_sheet.dart';
+import '../widgets/star_rating.dart';
 import 'help_screen.dart';
 
 class BookingDetailScreen extends StatefulWidget {
@@ -28,6 +32,7 @@ class BookingDetailScreen extends StatefulWidget {
 class _BookingDetailScreenState extends State<BookingDetailScreen> {
   late final ApiClient _api = ApiClient(sessionStore: widget.sessionStore);
   late Future<Booking> _future;
+  BookingRatingState? _ratingState;
   bool _cancelling = false;
   UserProfile? _profile;
 
@@ -36,6 +41,17 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     super.initState();
     _future = _api.getBooking(widget.bookingId);
     _loadProfile();
+    _loadRating();
+  }
+
+  Future<void> _loadRating() async {
+    try {
+      final state = await _api.getBookingRating(widget.bookingId);
+      if (!mounted) return;
+      setState(() => _ratingState = state);
+    } catch (_) {
+      /* rating UI optional */
+    }
   }
 
   Future<void> _loadProfile() async {
@@ -48,7 +64,55 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     }
   }
 
-  void _reload() => setState(() => _future = _api.getBooking(widget.bookingId));
+  void _reload() {
+    setState(() => _future = _api.getBooking(widget.bookingId));
+    _loadRating();
+  }
+
+  String _counterpartLabel(Booking b, AppLocalizations l10n) {
+    final trip = b.trip;
+    final isTravellerView = _profile != null && b.travellerId == _profile!.id;
+    if (isTravellerView) {
+      return trip?.driverDisplayName?.isNotEmpty == true
+          ? trip!.driverDisplayName!
+          : l10n.driver;
+    }
+    return b.travellerDisplayName?.isNotEmpty == true
+        ? b.travellerDisplayName!
+        : (b.travellerPhone ?? l10n.traveller);
+  }
+
+  String? _counterpartId(Booking b) {
+    final trip = b.trip;
+    if (trip == null) return null;
+    final isTravellerView = _profile != null && b.travellerId == _profile!.id;
+    return isTravellerView ? trip.driverId : b.travellerId;
+  }
+
+  Future<void> _rate(Booking b) async {
+    final l10n = AppLocalizations.of(context);
+    final ok = await showRateUserSheet(
+      context: context,
+      api: _api,
+      bookingId: b.id,
+      rateeLabel: _counterpartLabel(b, l10n),
+    );
+    if (ok) _loadRating();
+  }
+
+  Future<void> _reportOrBlock(Booking b) async {
+    final l10n = AppLocalizations.of(context);
+    final id = _counterpartId(b);
+    if (id == null) return;
+    await showReportBlockSheet(
+      context: context,
+      api: _api,
+      userId: id,
+      userLabel: _counterpartLabel(b, l10n),
+      tripId: b.tripId,
+      bookingId: b.id,
+    );
+  }
 
   Future<void> _openSos(Booking b) async {
     final trip = b.trip;
@@ -134,6 +198,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 ),
                 Text(formatDateTime(trip.departAt)),
                 Text('${formatInr(trip.fareInr)}/${l10n.seat}'),
+                if (trip.hasDriverRating) ...[
+                  const SizedBox(height: 4),
+                  RatingBadge(avg: trip.driverRatingAvg, count: trip.driverRatingCount),
+                ],
                 if (trip.hasMeetingPoints) ...[
                   const SizedBox(height: 8),
                   Text(l10n.meetingPoints, style: Theme.of(context).textTheme.titleSmall),
@@ -169,11 +237,33 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 SosButton(onPressed: () => _openSos(b)),
                 const SizedBox(height: 12),
               ],
-              if (b.canCancel)
+              if (_ratingState?.myRating != null) ...[
+                Text(
+                  l10n.ratingYourStars(_ratingState!.myRating!.stars),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                if (_ratingState!.myRating!.comment != null)
+                  Text(_ratingState!.myRating!.comment!),
+                const SizedBox(height: 12),
+              ] else if (_ratingState?.canRate == true) ...[
+                FilledButton.tonal(
+                  onPressed: () => _rate(b),
+                  child: Text(l10n.ratingCta),
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (_counterpartId(b) != null)
+                OutlinedButton(
+                  onPressed: () => _reportOrBlock(b),
+                  child: Text(l10n.reportOrBlock),
+                ),
+              if (b.canCancel) ...[
+                const SizedBox(height: 8),
                 OutlinedButton(
                   onPressed: _cancelling ? null : _cancel,
                   child: Text(l10n.cancelBooking),
                 ),
+              ],
               TextButton(
                 onPressed: () {
                   Navigator.of(context).push(

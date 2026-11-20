@@ -271,5 +271,67 @@
   "sosShareHeadline": "Khalashi trip — I'm on this ride:",
   "sosShareFooter": "In danger, call 112. This is a status share, not live tracking.",
   "sosCall112": "Call 112 (India emergency)",
-  "sosDisclaimer": "Free soft-launch SOS — no paid SMS. Share uses your phone’s share sheet (WhatsApp, Messages, etc.)."
+  "sosDisclaimer": "Free soft-launch SOS — no paid SMS. Share uses your phone’s share sheet (WhatsApp, Messages, etc.).",
+  "yourRating": "Your rating",
+  "ratingCta": "Rate this user",
+  "ratingTitle": "Leave a rating",
+  "ratingSubtitle": "How was your trip with {name}?",
+  "@ratingSubtitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ratingCommentOptional": "Comment (optional)",
+  "ratingSubmit": "Submit rating",
+  "ratingSubmitting": "Submitting…",
+  "ratingSubmitted": "Thanks — rating saved",
+  "ratingPickStars": "Choose 1 to 5 stars",
+  "ratingYourStars": "You rated {stars}★",
+  "@ratingYourStars": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      }
+    }
+  },
+  "reportOrBlock": "Report or block",
+  "reportUser": "Report user",
+  "reportUserSubtitle": "Tell us what went wrong with {name}",
+  "@reportUserSubtitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reportReason": "Reason",
+  "reportReasonHarassment": "Harassment / abuse",
+  "reportReasonUnsafe": "Unsafe driving",
+  "reportReasonNoShow": "No-show",
+  "reportReasonSpam": "Spam / fake trip",
+  "reportReasonFraud": "Fraud / payment issue",
+  "reportReasonOther": "Other",
+  "reportDetailsOptional": "Details (optional)",
+  "reportSubmit": "Submit report",
+  "reportSubmitting": "Submitting…",
+  "reportSubmitted": "Report sent for review",
+  "reportPickReason": "Pick a reason",
+  "blockUser": "Block user",
+  "blockUserHint": "They won’t see your trips and can’t book with you",
+  "blockUserConfirm": "Block {name}? You won’t see each other’s trips or bookings.",
+  "@blockUserConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "blockUserDone": "User blocked",
+  "unblockUser": "Unblock",
+  "unblockUserDone": "User unblocked",
+  "blockedUsersTitle": "Blocked users",
+  "blockedUsersSubtitle": "Manage who you’ve blocked",
+  "blockedUsersEmpty": "You haven’t blocked anyone"
 }

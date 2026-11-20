@@ -7,6 +7,7 @@ import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
 import '../utils/format.dart';
 import '../widgets/async_state.dart';
+import '../widgets/star_rating.dart';
 import 'book_seats_screen.dart';
 import 'help_screen.dart';
 
@@ -67,6 +68,13 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     Text('${trip.seatsLeft} ${l10n.seatsLeft} · ${formatInr(trip.fareInr)}/${l10n.seat}'),
                     if (trip.driverDisplayName != null)
                       Text('${l10n.driver}: ${trip.driverDisplayName}'),
+                    if (trip.hasDriverRating) ...[
+                      const SizedBox(height: 4),
+                      RatingBadge(
+                        avg: trip.driverRatingAvg,
+                        count: trip.driverRatingCount,
+                      ),
+                    ],
                     if (trip.hasMeetingPoints) ...[
                       const SizedBox(height: 12),
                       Text(l10n.meetingPoints, style: Theme.of(context).textTheme.titleSmall),

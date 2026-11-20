@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/trip.dart';
+import '../models/trust.dart';
 import '../models/user_profile.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
 import '../utils/format.dart';
+import '../widgets/rate_user_sheet.dart';
+import '../widgets/report_block_sheet.dart';
 import '../widgets/sos_sheet.dart';
 import 'booking_detail_screen.dart';
 
@@ -29,6 +32,8 @@ class TripManageScreen extends StatefulWidget {
 class _TripManageScreenState extends State<TripManageScreen> {
   late final ApiClient _api = ApiClient(sessionStore: widget.sessionStore);
   late Future<({Trip trip, List<Booking> bookings})> _future;
+  final Map<String, BookingRatingState> _ratingByBooking = {};
+  bool _ratingsLoadStarted = false;
   bool _cancelling = false;
   UserProfile? _profile;
 
@@ -37,6 +42,19 @@ class _TripManageScreenState extends State<TripManageScreen> {
     super.initState();
     _future = _api.tripBookings(widget.tripId);
     _loadProfile();
+  }
+
+  Future<void> _loadRatings(List<Booking> bookings) async {
+    for (final b in bookings) {
+      if (!b.isConfirmed) continue;
+      try {
+        final state = await _api.getBookingRating(b.id);
+        if (!mounted) return;
+        setState(() => _ratingByBooking[b.id] = state);
+      } catch (_) {
+        /* optional */
+      }
+    }
   }
 
   Future<void> _loadProfile() async {
@@ -50,7 +68,27 @@ class _TripManageScreenState extends State<TripManageScreen> {
   }
 
   void _reload() {
-    setState(() => _future = _api.tripBookings(widget.tripId));
+    setState(() {
+      _ratingByBooking.clear();
+      _ratingsLoadStarted = false;
+      _future = _api.tripBookings(widget.tripId);
+    });
+  }
+
+  Future<void> _rateBooking(Booking b, String label) async {
+    final ok = await showRateUserSheet(
+      context: context,
+      api: _api,
+      bookingId: b.id,
+      rateeLabel: label,
+    );
+    if (ok) {
+      try {
+        final state = await _api.getBookingRating(b.id);
+        if (!mounted) return;
+        setState(() => _ratingByBooking[b.id] = state);
+      } catch (_) {}
+    }
   }
 
   Future<void> _openSos(Trip trip, List<Booking> bookings) async {
@@ -129,6 +167,12 @@ class _TripManageScreenState extends State<TripManageScreen> {
           }
           final trip = snap.data!.trip;
           final bookings = snap.data!.bookings;
+          if (!_ratingsLoadStarted && bookings.any((b) => b.isConfirmed)) {
+            _ratingsLoadStarted = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _loadRatings(bookings);
+            });
+          }
           return ListView(
             padding: const EdgeInsets.all(24),
             children: [
@@ -176,29 +220,65 @@ class _TripManageScreenState extends State<TripManageScreen> {
               if (bookings.isEmpty)
                 Text(l10n.noBookingsOnTrip)
               else
-                ...bookings.map(
-                  (b) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(b.travellerDisplayName?.isNotEmpty == true
-                        ? b.travellerDisplayName!
-                        : (b.travellerPhone ?? l10n.traveller)),
-                    subtitle: Text(
-                      '${b.seats} ${l10n.seats} · ${l10n.preference}: ${b.seatPreference} · ${b.status}',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () async {
-                      await Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => BookingDetailScreen(
-                            sessionStore: widget.sessionStore,
-                            bookingId: b.id,
+                ...bookings.map((b) {
+                  final label = b.travellerDisplayName?.isNotEmpty == true
+                      ? b.travellerDisplayName!
+                      : (b.travellerPhone ?? l10n.traveller);
+                  final rating = _ratingByBooking[b.id];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(label),
+                        subtitle: Text(
+                          '${b.seats} ${l10n.seats} · ${l10n.preference}: ${b.seatPreference} · ${b.status}',
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => BookingDetailScreen(
+                                sessionStore: widget.sessionStore,
+                                bookingId: b.id,
+                              ),
+                            ),
+                          );
+                          _reload();
+                        },
+                      ),
+                      if (rating?.myRating != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(l10n.ratingYourStars(rating!.myRating!.stars)),
+                        )
+                      else if (rating?.canRate == true)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: () => _rateBooking(b, label),
+                            icon: const Icon(Icons.star_outline),
+                            label: Text(l10n.ratingCta),
                           ),
                         ),
-                      );
-                      _reload();
-                    },
-                  ),
-                ),
+                      if (b.isConfirmed)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: () => showReportBlockSheet(
+                              context: context,
+                              api: _api,
+                              userId: b.travellerId,
+                              userLabel: label,
+                              tripId: trip.id,
+                              bookingId: b.id,
+                            ),
+                            child: Text(l10n.reportOrBlock),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
             ],
           );
         },

@@ -46,10 +46,14 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   void _reload() => setState(() => _future = _load());
 
   String _meetingSubtitle(Trip t, AppLocalizations l10n) {
+    final rating = t.hasDriverRating
+        ? ' · ★ ${t.driverRatingAvg.toStringAsFixed(1)}'
+        : '';
     final lines = <String>[
       t.vehicleSummary,
       '${l10n.cashOnTrip}'
-          '${t.driverDisplayName != null ? ' · ${t.driverDisplayName}' : ''}',
+          '${t.driverDisplayName != null ? ' · ${t.driverDisplayName}' : ''}'
+          '$rating',
     ];
     if (t.pickupPoint != null) {
       lines.add('${l10n.pickupPoint}: ${t.pickupPoint}');

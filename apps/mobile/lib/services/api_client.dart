@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import '../models/trip.dart';
+import '../models/trust.dart';
 import '../models/user_profile.dart';
 import '../models/verification.dart';
 import 'session_store.dart';
@@ -270,6 +271,83 @@ class ApiClient {
     return VerificationInfo.fromJson(
       body['verification'] as Map<String, dynamic>,
     );
+  }
+
+  Future<BookingRatingState> getBookingRating(String bookingId) async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/ratings/booking/$bookingId'),
+      headers: await _headers(),
+    );
+    final body = await _decode(res);
+    return BookingRatingState.fromJson(body);
+  }
+
+  Future<TripRating> submitRating({
+    required String bookingId,
+    required int stars,
+    String? comment,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/ratings'),
+      headers: await _headers(),
+      body: jsonEncode({
+        'bookingId': bookingId,
+        'stars': stars,
+        if (comment != null) 'comment': comment,
+      }),
+    );
+    final body = await _decode(res);
+    return TripRating.fromJson(body['rating'] as Map<String, dynamic>);
+  }
+
+  Future<void> reportUser({
+    required String reportedUserId,
+    required ReportReason reason,
+    String? details,
+    String? tripId,
+    String? bookingId,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/reports'),
+      headers: await _headers(),
+      body: jsonEncode({
+        'reportedUserId': reportedUserId,
+        'reason': reason.apiValue,
+        if (details != null) 'details': details,
+        if (tripId != null) 'tripId': tripId,
+        if (bookingId != null) 'bookingId': bookingId,
+      }),
+    );
+    await _decode(res);
+  }
+
+  Future<void> blockUser(String userId) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/blocks'),
+      headers: await _headers(),
+      body: jsonEncode({'userId': userId}),
+    );
+    await _decode(res);
+  }
+
+  Future<void> unblockUser(String userId) async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/blocks/$userId'),
+      headers: await _headers(),
+    );
+    await _decode(res);
+  }
+
+  Future<List<BlockedUser>> myBlocks() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/blocks/mine'),
+      headers: await _headers(),
+    );
+    final body = await _decode(res);
+    final list = body['blocks'] as List<dynamic>;
+    return list
+        .map((e) => BlockedUser.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }
 

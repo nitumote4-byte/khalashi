@@ -271,5 +271,67 @@
   "sosShareHeadline": "खलाशी यात्रा — मैं इस सवारी पर हूँ:",
   "sosShareFooter": "खतरे में हों तो 112 कॉल करें। यह स्थिति साझा है, लाइव ट्रैकिंग नहीं।",
   "sosCall112": "112 कॉल करें (भारत आपातकाल)",
-  "sosDisclaimer": "मुफ़्त सॉफ्ट-लॉन्च SOS — कोई पेड SMS नहीं। शेयर आपके फ़ोन की शेयर शीट इस्तेमाल करता है (व्हाट्सऐप, संदेश आदि)।"
+  "sosDisclaimer": "मुफ़्त सॉफ्ट-लॉन्च SOS — कोई पेड SMS नहीं। शेयर आपके फ़ोन की शेयर शीट इस्तेमाल करता है (व्हाट्सऐप, संदेश आदि)।",
+  "yourRating": "आपकी रेटिंग",
+  "ratingCta": "इस उपयोगकर्ता को रेट करें",
+  "ratingTitle": "रेटिंग दें",
+  "ratingSubtitle": "{name} के साथ आपकी यात्रा कैसी रही?",
+  "@ratingSubtitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ratingCommentOptional": "टिप्पणी (वैकल्पिक)",
+  "ratingSubmit": "रेटिंग भेजें",
+  "ratingSubmitting": "भेज रहा है…",
+  "ratingSubmitted": "धन्यवाद — रेटिंग सेव हो गई",
+  "ratingPickStars": "1 से 5 स्टार चुनें",
+  "ratingYourStars": "आपने {stars}★ दिए",
+  "@ratingYourStars": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      }
+    }
+  },
+  "reportOrBlock": "रिपोर्ट या ब्लॉक",
+  "reportUser": "उपयोगकर्ता रिपोर्ट करें",
+  "reportUserSubtitle": "{name} के साथ क्या गलत हुआ, बताएँ",
+  "@reportUserSubtitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reportReason": "कारण",
+  "reportReasonHarassment": "उत्पीड़न / गाली-गलौज",
+  "reportReasonUnsafe": "असुरक्षित ड्राइविंग",
+  "reportReasonNoShow": "नहीं आए",
+  "reportReasonSpam": "स्पैम / नकली यात्रा",
+  "reportReasonFraud": "धोखा / भुगतान समस्या",
+  "reportReasonOther": "अन्य",
+  "reportDetailsOptional": "विवरण (वैकल्पिक)",
+  "reportSubmit": "रिपोर्ट भेजें",
+  "reportSubmitting": "भेज रहा है…",
+  "reportSubmitted": "रिपोर्ट समीक्षा के लिए भेज दी गई",
+  "reportPickReason": "कारण चुनें",
+  "blockUser": "ब्लॉक करें",
+  "blockUserHint": "वे आपकी यात्राएँ नहीं देखेंगे और आपके साथ बुक नहीं कर सकेंगे",
+  "blockUserConfirm": "{name} को ब्लॉक करें? आप एक-दूसरे की यात्राएँ या बुकिंग नहीं देखेंगे।",
+  "@blockUserConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "blockUserDone": "उपयोगकर्ता ब्लॉक हो गया",
+  "unblockUser": "अनब्लॉक",
+  "unblockUserDone": "उपयोगकर्ता अनब्लॉक हो गया",
+  "blockedUsersTitle": "ब्लॉक किए गए उपयोगकर्ता",
+  "blockedUsersSubtitle": "जिन्हें आपने ब्लॉक किया है, प्रबंधित करें",
+  "blockedUsersEmpty": "आपने अभी तक किसी को ब्लॉक नहीं किया"
 }

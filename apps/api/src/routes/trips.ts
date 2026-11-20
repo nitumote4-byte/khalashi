@@ -144,7 +144,8 @@ tripsRouter.get("/trips/mine", requireAuth, async (req, res) => {
 tripsRouter.get("/trips/search", requireAuth, searchLimit, async (req, res) => {
   try {
     const q = searchQuery.parse(req.query);
-    const trips = await searchTrips(q);
+    const user = (req as AuthedRequest).user;
+    const trips = await searchTrips({ ...q, viewerUserId: user.id });
     res.json({ ok: true, trips });
   } catch (err) {
     sendError(res, err);
