@@ -10,6 +10,8 @@ class Trip {
     this.pickupLng,
     this.dropoffLat,
     this.dropoffLng,
+    this.distanceMeters,
+    this.durationSeconds,
     required this.departAt,
     required this.seatsTotal,
     required this.seatsLeft,
@@ -34,6 +36,10 @@ class Trip {
   final double? pickupLng;
   final double? dropoffLat;
   final double? dropoffLng;
+  /// Optional road/estimate distance in meters from Offer Ride preview.
+  final int? distanceMeters;
+  /// Optional travel duration in seconds from Offer Ride preview.
+  final int? durationSeconds;
   final DateTime departAt;
   final int seatsTotal;
   final int seatsLeft;
@@ -70,6 +76,13 @@ class Trip {
       return double.tryParse(value.toString());
     }
 
+    int? optionalInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.round();
+      return int.tryParse(value.toString());
+    }
+
     return Trip(
       id: json['id'] as String,
       driverId: json['driverId'] as String,
@@ -81,6 +94,8 @@ class Trip {
       pickupLng: optionalCoord(json['pickupLng']),
       dropoffLat: optionalCoord(json['dropoffLat']),
       dropoffLng: optionalCoord(json['dropoffLng']),
+      distanceMeters: optionalInt(json['distanceMeters']),
+      durationSeconds: optionalInt(json['durationSeconds']),
       departAt: DateTime.parse(json['departAt'] as String).toLocal(),
       seatsTotal: json['seatsTotal'] as int,
       seatsLeft: json['seatsLeft'] as int,

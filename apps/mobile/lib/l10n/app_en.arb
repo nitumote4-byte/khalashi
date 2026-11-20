@@ -35,6 +35,58 @@
   "tapToMarkOnMap": "Tap to mark on map",
   "confirmPickup": "Confirm pickup",
   "confirmDropoff": "Confirm drop-off",
+  "leavingFromQuestion": "Where are you leaving from?",
+  "headingToQuestion": "Where are you heading?",
+  "cityOrMapHint": "Search a city or choose an exact spot on the map",
+  "chooseOnMap": "Choose on map",
+  "confirmLeaving": "Confirm leaving point",
+  "confirmHeading": "Confirm destination",
+  "leavingPoint": "Leaving from",
+  "headingPoint": "Heading to",
+  "routePreviewTitle": "Your route",
+  "routeDistance": "Distance",
+  "routeDuration": "Travel time",
+  "routeEstimateFallback": "Approximate — road routing unavailable, showing estimated distance.",
+  "continueToTripDetails": "Continue to trip details",
+  "editRoutePoints": "Edit locations",
+  "tripDetailsTitle": "Trip details",
+  "distanceKm": "{km} km",
+  "@distanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "durationMinutesOnly": "{minutes} min",
+  "@durationMinutesOnly": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursOnly": "{hours} h",
+  "@durationHoursOnly": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours} h {minutes} min",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "errorPointsRequired": "Set both leaving and heading points",
+  "errorSamePoint": "Leaving and heading points must be farther apart",
   "mapPinHint": "Move the map so the pin sits on the exact spot",
   "mapPinMoving": "Release to set location…",
   "mapPinLookingUp": "Looking up address…",
