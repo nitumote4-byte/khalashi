@@ -6,7 +6,7 @@ BlaBlaCar-style India carpool for **Nitin Mote Tours & Travel**.
 
 Stack: **Flutter** mobile · **Node (Express)** API · **PostgreSQL**.
 
-This repo includes **Phase 0–2** (auth + trips/book/cancel), **Phase 3 soft-launch harden**, and **soft-launch gov ID verification** (photo + manual review — no DigiLocker/UIDAI). Still **no** UPI / paid KYC APIs / chat / ratings / deep admin UI.
+This repo includes **Phase 0–2** (auth + trips/book/cancel), **Phase 3 soft-launch harden**, and **soft-launch gov ID verification** (ID photo + selfie + manual review — no DigiLocker/UIDAI / paid face-match). Still **no** UPI / paid KYC APIs / chat / ratings / deep admin UI.
 
 ## Monorepo layout
 
@@ -71,34 +71,38 @@ Errors return `{ ok: false, error, code }` (e.g. `RATE_LIMITED`, `SEATS_FULL`, `
 
 Seat booking uses `SELECT … FOR UPDATE` so concurrent books cannot oversell.
 
-### Soft-launch ID verification (photo + manual review)
+### Soft-launch ID verification (ID photo + selfie + manual review)
 
-No DigiLocker / UIDAI. User submits gov ID front photo + name/number → `pending_review`. Ops approve/reject via admin secret.
+No DigiLocker / UIDAI / paid face-match API. User submits gov ID front photo + front-camera selfie + name/number → `pending_review`. Ops open ID + selfie side-by-side and approve/reject via admin secret.
 
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
 | GET | `/verification/me` | Bearer | Current status + masked fields |
-| POST | `/verification/submit` | Bearer | `{ idType, fullName, idNumber, imageBase64 }` → pending |
-| GET | `/admin/verifications/pending` | `X-Admin-Secret` | List pending |
-| GET | `/admin/verifications/:id/image` | admin | JPEG/PNG bytes |
+| POST | `/verification/submit` | Bearer | `{ idType, fullName, idNumber, imageBase64, selfieBase64 }` → pending |
+| GET | `/admin/verifications/pending` | `X-Admin-Secret` | List pending (includes `imageUrl` + `selfieUrl`) |
+| GET | `/admin/verifications/:id/image` | admin | Gov ID JPEG/PNG/WEBP bytes |
+| GET | `/admin/verifications/:id/selfie` | admin | Selfie JPEG/PNG/WEBP bytes |
 | POST | `/admin/verifications/:id/approve` | admin | Mark verified |
 | POST | `/admin/verifications/:id/reject` | admin | `{ reviewNote? }` → rejected |
 
-`idType`: `aadhaar` \| `dl` \| `voter`. Images stored under `UPLOAD_DIR` (default `/app/uploads` in Docker). Mount a Railway volume there so photos survive redeploys.
+`idType`: `aadhaar` \| `dl` \| `voter`. ID + selfie stored under `UPLOAD_DIR` (default `/app/uploads` in Docker). Mount a Railway volume there so photos survive redeploys.
 
 **Offer Ride gate:** `POST /trips` requires `pending_review` or `verified`. Find Ride / book stays open without ID. Client shows the same gate with a prompt to verify.
 
-Admin curl example:
+Admin curl example (open ID + selfie in two tabs for manual match):
 
 ```bash
 export API=https://khalashi-api-production.up.railway.app
 export ADMIN_SECRET=…   # set on Railway service
 curl -s -H "X-Admin-Secret: $ADMIN_SECRET" "$API/admin/verifications/pending"
+# Side-by-side manual match — no paid face API:
+curl -s -H "X-Admin-Secret: $ADMIN_SECRET" -o id.jpg "$API/admin/verifications/<id>/image"
+curl -s -H "X-Admin-Secret: $ADMIN_SECRET" -o selfie.jpg "$API/admin/verifications/<id>/selfie"
 curl -s -X POST -H "X-Admin-Secret: $ADMIN_SECRET" -H "Content-Type: application/json" \
   -d '{}' "$API/admin/verifications/<id>/approve"
 ```
 
-**Not in v1 API:** UPI, DigiLocker, chat, ratings. Offer Ride uses an in-app map pin
+**Not in v1 API:** UPI, DigiLocker, paid face-match, chat, ratings, SOS. Offer Ride uses an in-app map pin
 picker (flutter_map + free Esri/OSM tiles) for optional pickup/drop meeting points.
 
 ## Quick start — Mobile
@@ -112,7 +116,7 @@ flutter run
 Defaults to the live Railway API. For a local API:
 `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000` (Android emulator).
 
-Flows: language → phone OTP → home → **Find a ride** / **Offer a ride** (ID submit required) → search/book or post → my bookings / my trips → **Profile** (verification badge, HI/EN, Help & safety) → free cancel until departure. Soft-launch ID: camera + optional ML Kit OCR autofill + manual review. Cash-on-trip + safety disclaimers; HI + EN.
+Flows: language → phone OTP → home → **Find a ride** / **Offer a ride** (ID submit required) → search/book or post → my bookings / my trips → **Profile** (verification badge, HI/EN, Help & safety) → free cancel until departure. Soft-launch ID: rear-camera ID photo + optional ML Kit OCR autofill + front-camera selfie + manual review. Cash-on-trip + safety disclaimers; HI + EN.
 
 Replace stub WhatsApp/phone in `apps/mobile/lib/config/support_contacts.dart` before soft launch.
 
@@ -131,6 +135,7 @@ Replace stub WhatsApp/phone in `apps/mobile/lib/config/support_contacts.dart` be
 | `008_trip_meeting_coords.sql` | pickup/drop lat/lng pins |
 | `009_trip_route_stats.sql` | route distance / duration |
 | `010_id_verification.sql` | users.verification_status + id_verifications |
+| `011_id_verification_selfie.sql` | id_verifications.selfie_path + selfie_mime |
 
 ## Deploy (hosted API + Postgres)
 
@@ -160,7 +165,7 @@ Deploy configs live in-repo (no secrets committed):
 | `UPLOAD_DIR` | optional | Default `/app/uploads` in Docker — mount a volume for persistence |
 | `ID_IMAGE_MAX_BYTES` | optional | Default `2097152` (2 MiB) |
 
-Migrations run automatically on container start (`docker-entrypoint.sh` → `node dist/db/migrate.js`). After merging ID verification, **redeploy the API** so migration `010_id_verification.sql` applies and set `ADMIN_SECRET`.
+Migrations run automatically on container start (`docker-entrypoint.sh` → `node dist/db/migrate.js`). After merging selfie verification, **redeploy the API** so migration `011_id_verification_selfie.sql` applies (and `010` if not yet applied) and set `ADMIN_SECRET`.
 
 ### Point Flutter at the hosted API
 

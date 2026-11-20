@@ -29,6 +29,7 @@ class _VerifyIdScreenState extends State<VerifyIdScreen> {
 
   IdType _idType = IdType.aadhaar;
   String? _imagePath;
+  String? _selfiePath;
   VerificationInfo? _current;
   bool _loading = true;
   bool _submitting = false;
@@ -118,6 +119,25 @@ class _VerifyIdScreenState extends State<VerifyIdScreen> {
     }
   }
 
+  Future<void> _captureSelfie() async {
+    final l10n = AppLocalizations.of(context);
+    setState(() => _error = null);
+    try {
+      final file = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+        preferredCameraDevice: CameraDevice.front,
+      );
+      if (file == null) return;
+      setState(() => _selfiePath = file.path);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = l10n.cameraPermissionDenied);
+    }
+  }
+
   Future<void> _runOcr(String path) async {
     if (!idOcrSupported) {
       setState(() => _ocrNote = AppLocalizations.of(context).ocrUnavailable);
@@ -143,6 +163,7 @@ class _VerifyIdScreenState extends State<VerifyIdScreen> {
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
     final path = _imagePath;
+    final selfie = _selfiePath;
     if (path == null) {
       setState(() => _error = l10n.verifyNeedPhoto);
       return;
@@ -151,25 +172,31 @@ class _VerifyIdScreenState extends State<VerifyIdScreen> {
       setState(() => _error = l10n.verifyNeedFields);
       return;
     }
+    if (selfie == null) {
+      setState(() => _error = l10n.verifyNeedSelfie);
+      return;
+    }
 
     setState(() {
       _submitting = true;
       _error = null;
     });
     try {
-      final bytes = await File(path).readAsBytes();
-      final b64 = base64Encode(bytes);
+      final idBytes = await File(path).readAsBytes();
+      final selfieBytes = await File(selfie).readAsBytes();
       final info = await _api.submitVerification(
         idType: _idType,
         fullName: _name.text.trim(),
         idNumber: _idNumber.text.trim(),
-        imageBase64: b64,
+        imageBase64: base64Encode(idBytes),
+        selfieBase64: base64Encode(selfieBytes),
       );
       if (!mounted) return;
       setState(() {
         _current = info;
         _submitting = false;
         _imagePath = null;
+        _selfiePath = null;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.verifySubmitted)),
@@ -318,6 +345,55 @@ class _VerifyIdScreenState extends State<VerifyIdScreen> {
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: KhalashiColors.dusk.withOpacity(0.7),
                         ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    l10n.verifySelfieTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.verifySelfieGuidance,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: KhalashiColors.dusk.withOpacity(0.85),
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_selfiePath != null)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(_selfiePath!),
+                        height: 220,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  else
+                    Container(
+                      height: 160,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: KhalashiColors.deepTeal.withOpacity(0.2)),
+                      ),
+                      child: Text(
+                        l10n.verifySelfieHint,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: KhalashiColors.dusk.withOpacity(0.7)),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: _submitting ? null : _captureSelfie,
+                    icon: const Icon(Icons.camera_front_outlined),
+                    label: Text(
+                      _selfiePath == null
+                          ? l10n.verifyTakeSelfie
+                          : l10n.verifyRetakeSelfie,
+                    ),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 12),

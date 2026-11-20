@@ -210,6 +210,7 @@ class ApiClient {
     required String fullName,
     required String idNumber,
     required String imageBase64,
+    required String selfieBase64,
   }) async {
     final res = await http.post(
       Uri.parse('$baseUrl/verification/submit'),
@@ -219,6 +220,7 @@ class ApiClient {
         'fullName': fullName,
         'idNumber': idNumber,
         'imageBase64': imageBase64,
+        'selfieBase64': selfieBase64,
       }),
     );
     final body = await _decode(res);

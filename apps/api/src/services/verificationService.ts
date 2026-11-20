@@ -1,6 +1,6 @@
 /**
- * Soft-launch gov ID verification — photo + manual review.
- * No DigiLocker / UIDAI. Images land on local/Railway disk under UPLOAD_DIR.
+ * Soft-launch gov ID verification — ID photo + selfie + manual review.
+ * No DigiLocker / UIDAI / paid face-match. Images land under UPLOAD_DIR.
  */
 import fs from "fs";
 import path from "path";
@@ -32,6 +32,11 @@ export type VerificationAdminRow = {
   status: "pending_review" | "verified" | "rejected";
   imagePath: string;
   imageMime: string;
+  selfiePath: string | null;
+  selfieMime: string | null;
+  /** Convenience paths for ops curl (relative admin URLs). */
+  imageUrl: string;
+  selfieUrl: string | null;
   reviewNote: string | null;
   reviewedAt: string | null;
   createdAt: string;
@@ -106,8 +111,8 @@ export async function assertCanOfferRide(userId: string): Promise<void> {
   throw httpError(
     403,
     status === "rejected"
-      ? "ID verification was rejected. Resubmit a clearer gov ID photo to offer a ride."
-      : "Submit a government ID for review before offering a ride.",
+      ? "ID verification was rejected. Resubmit a clearer gov ID photo and selfie to offer a ride."
+      : "Submit a government ID and selfie for review before offering a ride.",
     ErrorCodes.VERIFICATION_REQUIRED
   );
 }
@@ -144,12 +149,21 @@ export async function getMyVerification(userId: string): Promise<VerificationPub
   };
 }
 
+function unlinkQuiet(abs: string) {
+  try {
+    fs.unlinkSync(abs);
+  } catch {
+    /* ignore missing */
+  }
+}
+
 export async function submitVerification(input: {
   userId: string;
   idType: IdType;
   fullName: string;
   idNumber: string;
   imageBase64: string;
+  selfieBase64: string;
 }): Promise<VerificationPublic> {
   const fullName = input.fullName.trim();
   const idNumber = input.idNumber.trim().replace(/\s+/g, " ");
@@ -172,37 +186,42 @@ export async function submitVerification(input: {
     throw httpError(409, "Already verified", ErrorCodes.VERIFICATION_ALREADY);
   }
 
-  const { buffer, mime } = decodeImageBase64(input.imageBase64);
+  const idImage = decodeImageBase64(input.imageBase64);
+  const selfie = decodeImageBase64(input.selfieBase64);
   const uploadDir = ensureUploadDir();
-  const filename = `${input.userId}-${Date.now()}.${extForMime(mime)}`;
-  const absPath = path.join(uploadDir, filename);
-  fs.writeFileSync(absPath, buffer);
-
-  // Relative path stored so UPLOAD_DIR can move later.
-  const imagePath = filename;
+  const stamp = Date.now();
+  const imagePath = `${input.userId}-${stamp}-id.${extForMime(idImage.mime)}`;
+  const selfiePath = `${input.userId}-${stamp}-selfie.${extForMime(selfie.mime)}`;
+  const absId = path.join(uploadDir, imagePath);
+  const absSelfie = path.join(uploadDir, selfiePath);
+  fs.writeFileSync(absId, idImage.buffer);
+  fs.writeFileSync(absSelfie, selfie.buffer);
 
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
 
-    // Remove previous file if resubmitting after reject.
-    const prev = await client.query<{ image_path: string }>(
-      "SELECT image_path FROM id_verifications WHERE user_id = $1",
-      [input.userId]
-    );
+    // Remove previous files if resubmitting after reject.
+    const prev = await client.query<{
+      image_path: string;
+      selfie_path: string | null;
+    }>("SELECT image_path, selfie_path FROM id_verifications WHERE user_id = $1", [
+      input.userId,
+    ]);
     if (prev.rows[0]?.image_path) {
-      const oldAbs = path.join(uploadDir, prev.rows[0].image_path);
-      try {
-        fs.unlinkSync(oldAbs);
-      } catch {
-        /* ignore missing */
-      }
+      unlinkQuiet(path.join(uploadDir, prev.rows[0].image_path));
+    }
+    if (prev.rows[0]?.selfie_path) {
+      unlinkQuiet(path.join(uploadDir, prev.rows[0].selfie_path));
     }
 
     await client.query(
       `INSERT INTO id_verifications
-         (id, user_id, id_type, full_name, id_number, status, image_path, image_mime, review_note, reviewed_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, 'pending_review', $6, $7, NULL, NULL, NOW())
+         (id, user_id, id_type, full_name, id_number, status,
+          image_path, image_mime, selfie_path, selfie_mime,
+          review_note, reviewed_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'pending_review',
+               $6, $7, $8, $9, NULL, NULL, NOW())
        ON CONFLICT (user_id) DO UPDATE SET
          id_type = EXCLUDED.id_type,
          full_name = EXCLUDED.full_name,
@@ -210,10 +229,22 @@ export async function submitVerification(input: {
          status = 'pending_review',
          image_path = EXCLUDED.image_path,
          image_mime = EXCLUDED.image_mime,
+         selfie_path = EXCLUDED.selfie_path,
+         selfie_mime = EXCLUDED.selfie_mime,
          review_note = NULL,
          reviewed_at = NULL,
          updated_at = NOW()`,
-      [randomUUID(), input.userId, input.idType, fullName, idNumber, imagePath, mime]
+      [
+        randomUUID(),
+        input.userId,
+        input.idType,
+        fullName,
+        idNumber,
+        imagePath,
+        idImage.mime,
+        selfiePath,
+        selfie.mime,
+      ]
     );
 
     await client.query(
@@ -224,11 +255,8 @@ export async function submitVerification(input: {
     await client.query("COMMIT");
   } catch (err) {
     await client.query("ROLLBACK");
-    try {
-      fs.unlinkSync(absPath);
-    } catch {
-      /* ignore */
-    }
+    unlinkQuiet(absId);
+    unlinkQuiet(absSelfie);
     throw err;
   } finally {
     client.release();
@@ -240,13 +268,14 @@ export async function submitVerification(input: {
       msg: "id_verification_submitted",
       userId: input.userId,
       idType: input.idType,
+      hasSelfie: true,
     })
   );
 
   return getMyVerification(input.userId);
 }
 
-function mapAdminRow(row: {
+type AdminDbRow = {
   id: string;
   user_id: string;
   phone: string;
@@ -256,11 +285,15 @@ function mapAdminRow(row: {
   status: "pending_review" | "verified" | "rejected";
   image_path: string;
   image_mime: string;
+  selfie_path: string | null;
+  selfie_mime: string | null;
   review_note: string | null;
   reviewed_at: Date | null;
   created_at: Date;
   updated_at: Date;
-}): VerificationAdminRow {
+};
+
+function mapAdminRow(row: AdminDbRow): VerificationAdminRow {
   return {
     id: row.id,
     userId: row.user_id,
@@ -271,6 +304,10 @@ function mapAdminRow(row: {
     status: row.status,
     imagePath: row.image_path,
     imageMime: row.image_mime,
+    selfiePath: row.selfie_path,
+    selfieMime: row.selfie_mime,
+    imageUrl: `/admin/verifications/${row.id}/image`,
+    selfieUrl: row.selfie_path ? `/admin/verifications/${row.id}/selfie` : null,
     reviewNote: row.review_note,
     reviewedAt: row.reviewed_at ? row.reviewed_at.toISOString() : null,
     createdAt: row.created_at.toISOString(),
@@ -278,32 +315,40 @@ function mapAdminRow(row: {
   };
 }
 
-export async function listPendingVerifications(limit = 50): Promise<VerificationAdminRow[]> {
-  const { rows } = await pool.query<{
-    id: string;
-    user_id: string;
-    phone: string;
-    id_type: IdType;
-    full_name: string;
-    id_number: string;
-    status: "pending_review" | "verified" | "rejected";
-    image_path: string;
-    image_mime: string;
-    review_note: string | null;
-    reviewed_at: Date | null;
-    created_at: Date;
-    updated_at: Date;
-  }>(
-    `SELECT v.id, v.user_id, u.phone, v.id_type, v.full_name, v.id_number, v.status,
-            v.image_path, v.image_mime, v.review_note, v.reviewed_at, v.created_at, v.updated_at
+const ADMIN_SELECT = `SELECT v.id, v.user_id, u.phone, v.id_type, v.full_name, v.id_number, v.status,
+            v.image_path, v.image_mime, v.selfie_path, v.selfie_mime,
+            v.review_note, v.reviewed_at, v.created_at, v.updated_at
      FROM id_verifications v
-     JOIN users u ON u.id = v.user_id
+     JOIN users u ON u.id = v.user_id`;
+
+export async function listPendingVerifications(limit = 50): Promise<VerificationAdminRow[]> {
+  const { rows } = await pool.query<AdminDbRow>(
+    `${ADMIN_SELECT}
      WHERE v.status = 'pending_review'
      ORDER BY v.created_at ASC
      LIMIT $1`,
     [Math.min(Math.max(limit, 1), 200)]
   );
   return rows.map(mapAdminRow);
+}
+
+async function readStoredImage(
+  relativePath: string | null | undefined,
+  mime: string | null | undefined,
+  missingLabel: string
+): Promise<{ buffer: Buffer; mime: string; filename: string }> {
+  if (!relativePath || !mime) {
+    throw httpError(404, missingLabel, ErrorCodes.NOT_FOUND);
+  }
+  const abs = path.join(path.resolve(env.UPLOAD_DIR), relativePath);
+  if (!fs.existsSync(abs)) {
+    throw httpError(404, "Image file missing on disk", ErrorCodes.NOT_FOUND);
+  }
+  return {
+    buffer: fs.readFileSync(abs),
+    mime,
+    filename: relativePath,
+  };
 }
 
 export async function getVerificationImage(
@@ -317,15 +362,24 @@ export async function getVerificationImage(
   if (!row) {
     throw httpError(404, "Verification not found", ErrorCodes.NOT_FOUND);
   }
-  const abs = path.join(path.resolve(env.UPLOAD_DIR), row.image_path);
-  if (!fs.existsSync(abs)) {
-    throw httpError(404, "Image file missing on disk", ErrorCodes.NOT_FOUND);
+  return readStoredImage(row.image_path, row.image_mime, "ID image not found");
+}
+
+/** Selfie for manual face match against the gov ID photo (no paid face-match API). */
+export async function getVerificationSelfie(
+  verificationId: string
+): Promise<{ buffer: Buffer; mime: string; filename: string }> {
+  const { rows } = await pool.query<{
+    selfie_path: string | null;
+    selfie_mime: string | null;
+  }>("SELECT selfie_path, selfie_mime FROM id_verifications WHERE id = $1", [
+    verificationId,
+  ]);
+  const row = rows[0];
+  if (!row) {
+    throw httpError(404, "Verification not found", ErrorCodes.NOT_FOUND);
   }
-  return {
-    buffer: fs.readFileSync(abs),
-    mime: row.image_mime,
-    filename: row.image_path,
-  };
+  return readStoredImage(row.selfie_path, row.selfie_mime, "Selfie not found");
 }
 
 export async function reviewVerification(input: {
@@ -336,25 +390,8 @@ export async function reviewVerification(input: {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const { rows } = await client.query<{
-      id: string;
-      user_id: string;
-      phone: string;
-      id_type: IdType;
-      full_name: string;
-      id_number: string;
-      status: "pending_review" | "verified" | "rejected";
-      image_path: string;
-      image_mime: string;
-      review_note: string | null;
-      reviewed_at: Date | null;
-      created_at: Date;
-      updated_at: Date;
-    }>(
-      `SELECT v.id, v.user_id, u.phone, v.id_type, v.full_name, v.id_number, v.status,
-              v.image_path, v.image_mime, v.review_note, v.reviewed_at, v.created_at, v.updated_at
-       FROM id_verifications v
-       JOIN users u ON u.id = v.user_id
+    const { rows } = await client.query<AdminDbRow>(
+      `${ADMIN_SELECT}
        WHERE v.id = $1
        FOR UPDATE OF v`,
       [input.verificationId]
@@ -370,27 +407,14 @@ export async function reviewVerification(input: {
     const nextStatus = input.decision === "approve" ? "verified" : "rejected";
     const note = input.reviewNote?.trim() || null;
 
-    const updated = await client.query<{
-      id: string;
-      user_id: string;
-      phone: string;
-      id_type: IdType;
-      full_name: string;
-      id_number: string;
-      status: "pending_review" | "verified" | "rejected";
-      image_path: string;
-      image_mime: string;
-      review_note: string | null;
-      reviewed_at: Date | null;
-      created_at: Date;
-      updated_at: Date;
-    }>(
+    const updated = await client.query<AdminDbRow>(
       `UPDATE id_verifications v
        SET status = $2, review_note = $3, reviewed_at = NOW(), updated_at = NOW()
        FROM users u
        WHERE v.id = $1 AND u.id = v.user_id
        RETURNING v.id, v.user_id, u.phone, v.id_type, v.full_name, v.id_number, v.status,
-                 v.image_path, v.image_mime, v.review_note, v.reviewed_at, v.created_at, v.updated_at`,
+                 v.image_path, v.image_mime, v.selfie_path, v.selfie_mime,
+                 v.review_note, v.reviewed_at, v.created_at, v.updated_at`,
       [input.verificationId, nextStatus, note]
     );
 

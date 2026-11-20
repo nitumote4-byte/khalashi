@@ -48,7 +48,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Khalashi uses your location to fill From/To with your current city or locality. / खलाशी आपके वर्तमान शहर या इलाके से From/To भरने के लिए लोकेशन का उपयोग करता है।</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Khalashi needs camera access to photograph the front of your government ID for soft-launch verification. / खलाशी सॉफ्ट-लॉन्च पहचान सत्यापन के लिए आपकी सरकारी आईडी का फ़ोटो लेने हेतु कैमरे का उपयोग करता है।</string>
+	<string>Khalashi needs camera access to photograph your government ID and take a selfie for soft-launch verification. / खलाशी सॉफ्ट-लॉन्च पहचान सत्यापन के लिए सरकारी आईडी फ़ोटो और सेल्फ़ी लेने हेतु कैमरे का उपयोग करता है।</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Khalashi may use a photo of your government ID from your library for soft-launch verification. / खलाशी सॉफ्ट-लॉन्च पहचान सत्यापन के लिए लाइब्रेरी से सरकारी आईडी फ़ोटो उपयोग कर सकता है।</string>
 </dict>
