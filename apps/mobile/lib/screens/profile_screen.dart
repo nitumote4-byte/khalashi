@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../locale_scope.dart';
+import '../models/user_profile.dart';
 import '../models/verification.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
@@ -23,11 +24,25 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late final ApiClient _api = ApiClient(sessionStore: widget.sessionStore);
   VerificationStatus _status = VerificationStatus.unverified;
+  UserProfile? _profile;
+  bool _loadingProfile = true;
+
+  final _contactNameCtrl = TextEditingController();
+  final _contactPhoneCtrl = TextEditingController();
+  bool _savingContact = false;
 
   @override
   void initState() {
     super.initState();
     _refreshStatus();
+    _loadProfile();
+  }
+
+  @override
+  void dispose() {
+    _contactNameCtrl.dispose();
+    _contactPhoneCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshStatus() async {
@@ -37,6 +52,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() => _status = status);
     } catch (_) {
       /* keep last */
+    }
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _loadingProfile = true);
+    try {
+      final profile = await _api.getMe();
+      if (!mounted) return;
+      setState(() {
+        _profile = profile;
+        _contactNameCtrl.text = profile.emergencyContactName ?? '';
+        final phone = profile.emergencyContactPhone ?? '';
+        _contactPhoneCtrl.text = phone.startsWith('+91') && phone.length == 13
+            ? phone.substring(3)
+            : phone.replaceFirst(RegExp(r'^\+'), '');
+        _loadingProfile = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingProfile = false);
+    }
+  }
+
+  Future<void> _saveEmergencyContact() async {
+    final l10n = AppLocalizations.of(context);
+    final name = _contactNameCtrl.text.trim();
+    final phoneRaw = _contactPhoneCtrl.text.trim();
+
+    if (name.isEmpty && phoneRaw.isEmpty) {
+      // Clear
+    } else if (name.isEmpty || phoneRaw.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.emergencyContactNeedBoth)),
+      );
+      return;
+    } else if (!RegExp(r'^\d{10}$').hasMatch(phoneRaw.replaceAll(RegExp(r'\D'), '')) &&
+        !RegExp(r'^\+?\d{10,15}$').hasMatch(phoneRaw.replaceAll(RegExp(r'\s'), ''))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.emergencyContactInvalidPhone)),
+      );
+      return;
+    }
+
+    setState(() => _savingContact = true);
+    try {
+      final digits = phoneRaw.replaceAll(RegExp(r'\D'), '');
+      final updated = await _api.updateEmergencyContact(
+        name: name.isEmpty ? null : name,
+        phone: phoneRaw.isEmpty
+            ? null
+            : (digits.length == 10 ? digits : phoneRaw),
+      );
+      if (!mounted) return;
+      setState(() => _profile = updated);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            updated.hasEmergencyContact
+                ? l10n.emergencyContactSaved
+                : l10n.emergencyContactCleared,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) setState(() => _savingContact = false);
     }
   }
 
@@ -101,6 +184,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
           ),
           const Divider(),
+          Text(l10n.emergencyContactTitle, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Text(
+            l10n.emergencyContactSubtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: KhalashiColors.dusk.withOpacity(0.75),
+                ),
+          ),
+          const SizedBox(height: 12),
+          if (_loadingProfile)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else ...[
+            TextField(
+              controller: _contactNameCtrl,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                labelText: l10n.emergencyContactName,
+                hintText: l10n.emergencyContactNameHint,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _contactPhoneCtrl,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                labelText: l10n.emergencyContactPhone,
+                hintText: l10n.phoneHint,
+                prefixText: '+91 ',
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: _savingContact ? null : _saveEmergencyContact,
+              child: Text(
+                _savingContact ? l10n.emergencyContactSaving : l10n.emergencyContactSave,
+              ),
+            ),
+            if (_profile?.hasEmergencyContact == true)
+              TextButton(
+                onPressed: _savingContact
+                    ? null
+                    : () {
+                        _contactNameCtrl.clear();
+                        _contactPhoneCtrl.clear();
+                        _saveEmergencyContact();
+                      },
+                child: Text(l10n.emergencyContactClear),
+              ),
+          ],
+          const Divider(height: 32),
           Text(l10n.languageTitle, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           SegmentedButton<String>(

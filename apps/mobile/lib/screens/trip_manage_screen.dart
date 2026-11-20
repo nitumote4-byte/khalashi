@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/trip.dart';
+import '../models/user_profile.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
 import '../utils/format.dart';
+import '../widgets/sos_sheet.dart';
 import 'booking_detail_screen.dart';
 
 class TripManageScreen extends StatefulWidget {
@@ -28,15 +30,49 @@ class _TripManageScreenState extends State<TripManageScreen> {
   late final ApiClient _api = ApiClient(sessionStore: widget.sessionStore);
   late Future<({Trip trip, List<Booking> bookings})> _future;
   bool _cancelling = false;
+  UserProfile? _profile;
 
   @override
   void initState() {
     super.initState();
     _future = _api.tripBookings(widget.tripId);
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile = await _api.getMe();
+      if (!mounted) return;
+      setState(() => _profile = profile);
+    } catch (_) {
+      /* SOS still works without contact */
+    }
   }
 
   void _reload() {
     setState(() => _future = _api.tripBookings(widget.tripId));
+  }
+
+  Future<void> _openSos(Trip trip, List<Booking> bookings) async {
+    final confirmed = bookings.where((b) => b.isConfirmed).toList();
+    final phones = confirmed
+        .map((b) => b.travellerPhone)
+        .whereType<String>()
+        .where((p) => p.isNotEmpty)
+        .toList();
+    await showSosSheet(
+      context: context,
+      api: _api,
+      tripId: trip.id,
+      origin: trip.origin,
+      destination: trip.destination,
+      departAt: trip.departAt,
+      pickupPoint: trip.pickupPoint,
+      dropoffPoint: trip.dropoffPoint,
+      counterpartPhone: phones.isEmpty ? null : phones.join(', '),
+      counterpartLabel: AppLocalizations.of(context).traveller,
+      profile: _profile,
+    );
   }
 
   Future<void> _cancelTrip(Trip trip) async {
@@ -125,6 +161,10 @@ class _TripManageScreenState extends State<TripManageScreen> {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 20),
+              if (trip.isOpen) ...[
+                SosButton(onPressed: () => _openSos(trip, bookings)),
+                const SizedBox(height: 12),
+              ],
               if (trip.canCancel)
                 OutlinedButton(
                   onPressed: _cancelling ? null : () => _cancelTrip(trip),

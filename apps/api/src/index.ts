@@ -5,6 +5,8 @@ import { requestLog } from "./middleware/requestLog";
 import { authRouter } from "./routes/auth";
 import { bookingsRouter } from "./routes/bookings";
 import { healthRouter } from "./routes/health";
+import { publicTripsRouter } from "./routes/publicTrips";
+import { sosRouter } from "./routes/sos";
 import { tripsRouter } from "./routes/trips";
 import { verificationRouter } from "./routes/verification";
 import { HttpError } from "./utils/errors";
@@ -18,10 +20,12 @@ app.use(express.json({ limit: "3mb" }));
 app.use(requestLog);
 
 app.use(healthRouter);
+app.use(publicTripsRouter);
 app.use(authRouter);
 app.use(verificationRouter);
 app.use(tripsRouter);
 app.use(bookingsRouter);
+app.use(sosRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ ok: false, error: "Not found", code: "NOT_FOUND" });

@@ -238,6 +238,30 @@ abstract class AppLocalizations {
   String get ocrNoTextHint;
   String get ocrUnavailable;
   String get notNow;
+  String get emergencyContactTitle;
+  String get emergencyContactSubtitle;
+  String get emergencyContactName;
+  String get emergencyContactNameHint;
+  String get emergencyContactPhone;
+  String get emergencyContactSave;
+  String get emergencyContactSaving;
+  String get emergencyContactSaved;
+  String get emergencyContactCleared;
+  String get emergencyContactClear;
+  String get emergencyContactNeedBoth;
+  String get emergencyContactInvalidPhone;
+  String get sosButton;
+  String get sosTitle;
+  String get sosSubtitle;
+  String get sosCallContact;
+  String sosCallContactNamed(String name);
+  String get sosNoContact;
+  String get sosShareTrip;
+  String get sosShareSubject;
+  String get sosShareHeadline;
+  String get sosShareFooter;
+  String get sosCall112;
+  String get sosDisclaimer;
 }
 
 class _AppLocalizationsDelegate

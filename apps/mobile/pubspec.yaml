@@ -22,6 +22,9 @@ dependencies:
   # Soft-launch ID verification: camera capture + optional on-device OCR
   image_picker: ^1.1.2
   google_mlkit_text_recognition: ^0.14.0
+  # SOS: dial emergency contact / 112 + system share sheet
+  url_launcher: ^6.3.1
+  share_plus: ^10.1.4
 
 dev_dependencies:
   flutter_test:

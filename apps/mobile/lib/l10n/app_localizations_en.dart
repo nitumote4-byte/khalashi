@@ -446,4 +446,58 @@ class AppLocalizationsEn extends AppLocalizations {
       'On-device OCR isn’t available here — enter fields manually.';
   @override
   String get notNow => 'Not now';
+  @override
+  String get emergencyContactTitle => 'Emergency contact';
+  @override
+  String get emergencyContactSubtitle =>
+      'Saved for SOS — call this person and share your trip in one tap.';
+  @override
+  String get emergencyContactName => 'Contact name';
+  @override
+  String get emergencyContactNameHint => 'Family or friend';
+  @override
+  String get emergencyContactPhone => 'Contact phone';
+  @override
+  String get emergencyContactSave => 'Save emergency contact';
+  @override
+  String get emergencyContactSaving => 'Saving…';
+  @override
+  String get emergencyContactSaved => 'Emergency contact saved';
+  @override
+  String get emergencyContactCleared => 'Emergency contact cleared';
+  @override
+  String get emergencyContactClear => 'Clear contact';
+  @override
+  String get emergencyContactNeedBoth =>
+      'Enter both name and phone, or clear both.';
+  @override
+  String get emergencyContactInvalidPhone =>
+      'Enter a valid 10-digit Indian mobile number.';
+  @override
+  String get sosButton => 'SOS';
+  @override
+  String get sosTitle => 'Need help now?';
+  @override
+  String get sosSubtitle =>
+      'Call your emergency contact, share this trip, or dial India emergency 112. Khalashi is not an emergency response service.';
+  @override
+  String get sosCallContact => 'Call emergency contact';
+  @override
+  String sosCallContactNamed(String name) => 'Call $name';
+  @override
+  String get sosNoContact => 'Add an emergency contact in Profile first.';
+  @override
+  String get sosShareTrip => 'Share trip summary';
+  @override
+  String get sosShareSubject => 'Khalashi trip';
+  @override
+  String get sosShareHeadline => "Khalashi trip — I'm on this ride:";
+  @override
+  String get sosShareFooter =>
+      'In danger, call 112. This is a status share, not live tracking.';
+  @override
+  String get sosCall112 => 'Call 112 (India emergency)';
+  @override
+  String get sosDisclaimer =>
+      'Free soft-launch SOS — no paid SMS. Share uses your phone’s share sheet (WhatsApp, Messages, etc.).';
 }

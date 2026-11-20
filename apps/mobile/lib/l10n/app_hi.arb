@@ -240,5 +240,36 @@
   "ocrFilledHint": "OCR ने जो पढ़ा भर दिया — कृपया जाँच लें।",
   "ocrNoTextHint": "टेक्स्ट नहीं पढ़ा — नाम और आईडी नंबर खुद भरें।",
   "ocrUnavailable": "यहाँ ऑन-डिवाइस OCR उपलब्ध नहीं — फ़ील्ड खुद भरें।",
-  "notNow": "अभी नहीं"
+  "notNow": "अभी नहीं",
+  "emergencyContactTitle": "आपातकालीन संपर्क",
+  "emergencyContactSubtitle": "SOS के लिए सेव — एक टैप में कॉल करें और यात्रा साझा करें।",
+  "emergencyContactName": "संपर्क का नाम",
+  "emergencyContactNameHint": "परिवार या मित्र",
+  "emergencyContactPhone": "संपर्क फ़ोन",
+  "emergencyContactSave": "आपातकालीन संपर्क सेव करें",
+  "emergencyContactSaving": "सेव हो रहा है…",
+  "emergencyContactSaved": "आपातकालीन संपर्क सेव हो गया",
+  "emergencyContactCleared": "आपातकालीन संपर्क हटा दिया",
+  "emergencyContactClear": "संपर्क हटाएँ",
+  "emergencyContactNeedBoth": "नाम और फ़ोन दोनों भरें, या दोनों खाली छोड़ें।",
+  "emergencyContactInvalidPhone": "मान्य 10 अंकों का भारतीय मोबाइल नंबर दर्ज करें।",
+  "sosButton": "SOS",
+  "sosTitle": "अभी मदद चाहिए?",
+  "sosSubtitle": "अपने आपातकालीन संपर्क को कॉल करें, यह यात्रा साझा करें, या भारत आपातकाल 112 डायल करें। खलाशी आपातकालीन प्रतिक्रिया सेवा नहीं है।",
+  "sosCallContact": "आपातकालीन संपर्क कॉल करें",
+  "sosCallContactNamed": "{name} को कॉल करें",
+  "@sosCallContactNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sosNoContact": "पहले प्रोफ़ाइल में आपातकालीन संपर्क जोड़ें।",
+  "sosShareTrip": "यात्रा सारांश साझा करें",
+  "sosShareSubject": "खलाशी यात्रा",
+  "sosShareHeadline": "खलाशी यात्रा — मैं इस सवारी पर हूँ:",
+  "sosShareFooter": "खतरे में हों तो 112 कॉल करें। यह स्थिति साझा है, लाइव ट्रैकिंग नहीं।",
+  "sosCall112": "112 कॉल करें (भारत आपातकाल)",
+  "sosDisclaimer": "मुफ़्त सॉफ्ट-लॉन्च SOS — कोई पेड SMS नहीं। शेयर आपके फ़ोन की शेयर शीट इस्तेमाल करता है (व्हाट्सऐप, संदेश आदि)।"
 }

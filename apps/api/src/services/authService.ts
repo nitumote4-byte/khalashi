@@ -30,7 +30,32 @@ export type AuthUser = {
   phone: string;
   displayName: string | null;
   language: "en" | "hi";
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
 };
+
+type UserRow = {
+  id: string;
+  phone: string;
+  display_name: string | null;
+  language: "en" | "hi";
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+};
+
+const USER_SELECT =
+  "id, phone, display_name, language, emergency_contact_name, emergency_contact_phone";
+
+function mapUserRow(row: UserRow): AuthUser {
+  return {
+    id: row.id,
+    phone: row.phone,
+    displayName: row.display_name,
+    language: row.language,
+    emergencyContactName: row.emergency_contact_name,
+    emergencyContactPhone: row.emergency_contact_phone,
+  };
+}
 
 const challenges = new Map<string, Challenge>();
 const sessions = new Map<string, Session>();
@@ -54,44 +79,25 @@ async function ensureUser(phone: string): Promise<AuthUser> {
   const cached = usersByPhone.get(phone);
   if (cached) return cached;
 
-  const existing = await pool.query<{
-    id: string;
-    phone: string;
-    display_name: string | null;
-    language: "en" | "hi";
-  }>("SELECT id, phone, display_name, language FROM users WHERE phone = $1", [phone]);
+  const existing = await pool.query<UserRow>(
+    `SELECT ${USER_SELECT} FROM users WHERE phone = $1`,
+    [phone]
+  );
 
   if (existing.rows[0]) {
-    const row = existing.rows[0];
-    const user: AuthUser = {
-      id: row.id,
-      phone: row.phone,
-      displayName: row.display_name,
-      language: row.language,
-    };
+    const user = mapUserRow(existing.rows[0]);
     cacheUser(user);
     return user;
   }
 
-  const inserted = await pool.query<{
-    id: string;
-    phone: string;
-    display_name: string | null;
-    language: "en" | "hi";
-  }>(
+  const inserted = await pool.query<UserRow>(
     `INSERT INTO users (phone, language)
      VALUES ($1, 'en')
      ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
-     RETURNING id, phone, display_name, language`,
+     RETURNING ${USER_SELECT}`,
     [phone]
   );
-  const row = inserted.rows[0];
-  const user: AuthUser = {
-    id: row.id,
-    phone: row.phone,
-    displayName: row.display_name,
-    language: row.language,
-  };
+  const user = mapUserRow(inserted.rows[0]);
   cacheUser(user);
   return user;
 }
@@ -175,6 +181,8 @@ export async function verifyOtp(phoneRaw: string, code: string) {
       phone: user.phone,
       displayName: user.displayName,
       language: user.language,
+      emergencyContactName: user.emergencyContactName,
+      emergencyContactPhone: user.emergencyContactPhone,
     },
   };
 }
@@ -197,53 +205,92 @@ export function logout(token: string | undefined) {
 }
 
 export async function updateDisplayName(userId: string, displayName: string | null) {
-  const { rows } = await pool.query<{
-    id: string;
-    phone: string;
-    display_name: string | null;
-    language: "en" | "hi";
-  }>(
+  const { rows } = await pool.query<UserRow>(
     `UPDATE users
      SET display_name = $2, updated_at = NOW()
      WHERE id = $1
-     RETURNING id, phone, display_name, language`,
+     RETURNING ${USER_SELECT}`,
     [userId, displayName]
   );
   if (!rows[0]) {
     throw httpError(404, "User not found", ErrorCodes.NOT_FOUND);
   }
-  const user: AuthUser = {
-    id: rows[0].id,
-    phone: rows[0].phone,
-    displayName: rows[0].display_name,
-    language: rows[0].language,
-  };
+  const user = mapUserRow(rows[0]);
   cacheUser(user);
   return user;
 }
 
 export async function updateLanguage(userId: string, language: "en" | "hi") {
-  const { rows } = await pool.query<{
-    id: string;
-    phone: string;
-    display_name: string | null;
-    language: "en" | "hi";
-  }>(
+  const { rows } = await pool.query<UserRow>(
     `UPDATE users
      SET language = $2, updated_at = NOW()
      WHERE id = $1
-     RETURNING id, phone, display_name, language`,
+     RETURNING ${USER_SELECT}`,
     [userId, language]
   );
   if (!rows[0]) {
     throw httpError(404, "User not found", ErrorCodes.NOT_FOUND);
   }
-  const user: AuthUser = {
-    id: rows[0].id,
-    phone: rows[0].phone,
-    displayName: rows[0].display_name,
-    language: rows[0].language,
-  };
+  const user = mapUserRow(rows[0]);
+  cacheUser(user);
+  return user;
+}
+
+/** Save or clear emergency contact. Empty name+phone clears both. */
+export async function updateEmergencyContact(
+  userId: string,
+  input: { name: string | null; phone: string | null }
+) {
+  const nameRaw = input.name?.trim() ?? "";
+  const phoneRaw = input.phone?.trim() ?? "";
+
+  let name: string | null = null;
+  let phone: string | null = null;
+
+  if (nameRaw || phoneRaw) {
+    if (!nameRaw) {
+      throw httpError(400, "Emergency contact name is required", ErrorCodes.VALIDATION_ERROR);
+    }
+    if (nameRaw.length > 120) {
+      throw httpError(
+        400,
+        "Emergency contact name must be at most 120 characters",
+        ErrorCodes.VALIDATION_ERROR
+      );
+    }
+    if (!phoneRaw) {
+      throw httpError(400, "Emergency contact phone is required", ErrorCodes.VALIDATION_ERROR);
+    }
+    name = nameRaw;
+    phone = normalizePhone(phoneRaw);
+  }
+
+  const { rows } = await pool.query<UserRow>(
+    `UPDATE users
+     SET emergency_contact_name = $2,
+         emergency_contact_phone = $3,
+         updated_at = NOW()
+     WHERE id = $1
+     RETURNING ${USER_SELECT}`,
+    [userId, name, phone]
+  );
+  if (!rows[0]) {
+    throw httpError(404, "User not found", ErrorCodes.NOT_FOUND);
+  }
+  const user = mapUserRow(rows[0]);
+  cacheUser(user);
+  return user;
+}
+
+export async function getUserById(userId: string): Promise<AuthUser | null> {
+  const cached = usersById.get(userId);
+  if (cached) return cached;
+  const { rows } = await pool.query<UserRow>(
+    `SELECT ${USER_SELECT} FROM users WHERE id = $1`,
+    [userId]
+  );
+  if (!rows[0]) return null;
+  const user = mapUserRow(rows[0]);
   cacheUser(user);
   return user;
 }

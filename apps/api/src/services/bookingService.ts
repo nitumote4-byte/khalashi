@@ -140,6 +140,8 @@ type BookingWithTrip = BookingRow & {
   t_status: TripRow["status"];
   t_created_at: Date;
   t_updated_at: Date;
+  t_driver_display_name?: string | null;
+  t_driver_phone?: string | null;
 };
 
 function tripFromJoined(row: BookingWithTrip): TripRow {
@@ -168,6 +170,8 @@ function tripFromJoined(row: BookingWithTrip): TripRow {
     status: row.t_status,
     created_at: row.t_created_at,
     updated_at: row.t_updated_at,
+    driver_display_name: row.t_driver_display_name ?? null,
+    driver_phone: row.t_driver_phone ?? null,
   };
 }
 
@@ -175,6 +179,7 @@ const BOOKING_TRIP_SELECT = `
   b.id, b.trip_id, b.traveller_id, b.seats, b.seat_preference, b.cash_total_inr,
   b.status, b.cancelled_by, b.cancel_reason, b.created_at, b.updated_at,
   u.phone AS traveller_phone, u.display_name AS traveller_display_name,
+  d.display_name AS t_driver_display_name, d.phone AS t_driver_phone,
   t.id AS t_id, t.driver_id AS t_driver_id, t.origin AS t_origin,
   t.destination AS t_destination, t.origin_normalized AS t_origin_normalized,
   t.destination_normalized AS t_destination_normalized,
@@ -194,6 +199,7 @@ export async function listMyBookings(travellerId: string) {
      FROM bookings b
      JOIN trips t ON t.id = b.trip_id
      JOIN users u ON u.id = b.traveller_id
+     JOIN users d ON d.id = t.driver_id
      WHERE b.traveller_id = $1
      ORDER BY t.depart_at DESC`,
     [travellerId]
@@ -227,6 +233,7 @@ export async function getBookingById(bookingId: string, userId: string) {
      FROM bookings b
      JOIN trips t ON t.id = b.trip_id
      JOIN users u ON u.id = b.traveller_id
+     JOIN users d ON d.id = t.driver_id
      WHERE b.id = $1`,
     [bookingId]
   );
