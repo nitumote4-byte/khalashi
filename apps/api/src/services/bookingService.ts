@@ -1,5 +1,6 @@
 import { pool } from "../db/pool";
 import { ErrorCodes, httpError } from "../utils/errors";
+import { assertNotBlocked } from "./blockService";
 import { getTripById, lockTrip, mapTrip, type TripRow } from "./tripService";
 
 export type SeatPreference = "front" | "window" | "any";
@@ -55,6 +56,17 @@ export async function createBooking(input: {
       "Seat preference must be front, window, or any",
       ErrorCodes.VALIDATION_ERROR
     );
+  }
+
+  // Soft-launch: blocked pairs cannot book each other.
+  // Resolve driver before opening the booking transaction.
+  {
+    const peek = await pool.query<{ driver_id: string }>(
+      "SELECT driver_id FROM trips WHERE id = $1",
+      [input.tripId]
+    );
+    if (!peek.rows[0]) throw httpError(404, "Trip not found", ErrorCodes.NOT_FOUND);
+    await assertNotBlocked(input.travellerId, peek.rows[0].driver_id);
   }
 
   const client = await pool.connect();
@@ -142,6 +154,8 @@ type BookingWithTrip = BookingRow & {
   t_updated_at: Date;
   t_driver_display_name?: string | null;
   t_driver_phone?: string | null;
+  t_driver_rating_avg?: number | string | null;
+  t_driver_rating_count?: number | string | null;
 };
 
 function tripFromJoined(row: BookingWithTrip): TripRow {
@@ -172,6 +186,8 @@ function tripFromJoined(row: BookingWithTrip): TripRow {
     updated_at: row.t_updated_at,
     driver_display_name: row.t_driver_display_name ?? null,
     driver_phone: row.t_driver_phone ?? null,
+    driver_rating_avg: row.t_driver_rating_avg ?? null,
+    driver_rating_count: row.t_driver_rating_count ?? null,
   };
 }
 
@@ -180,6 +196,7 @@ const BOOKING_TRIP_SELECT = `
   b.status, b.cancelled_by, b.cancel_reason, b.created_at, b.updated_at,
   u.phone AS traveller_phone, u.display_name AS traveller_display_name,
   d.display_name AS t_driver_display_name, d.phone AS t_driver_phone,
+  d.rating_avg AS t_driver_rating_avg, d.rating_count AS t_driver_rating_count,
   t.id AS t_id, t.driver_id AS t_driver_id, t.origin AS t_origin,
   t.destination AS t_destination, t.origin_normalized AS t_origin_normalized,
   t.destination_normalized AS t_destination_normalized,

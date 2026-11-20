@@ -31,6 +31,8 @@ export type TripRow = {
   updated_at: Date;
   driver_display_name?: string | null;
   driver_phone?: string | null;
+  driver_rating_avg?: number | string | null;
+  driver_rating_count?: number | string | null;
 };
 
 const MAX_SEATS = 8;
@@ -157,6 +159,8 @@ export function mapTrip(row: TripRow) {
     status: row.status,
     driverDisplayName: row.driver_display_name ?? null,
     driverPhone: row.driver_phone ?? null,
+    driverRatingAvg: asFiniteNumber(row.driver_rating_avg) ?? 0,
+    driverRatingCount: asOptionalInt(row.driver_rating_count) ?? 0,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
   };
@@ -366,7 +370,8 @@ export async function listMyTrips(driverId: string) {
 
 export async function getTripById(tripId: string) {
   const { rows } = await pool.query<TripRow>(
-    `SELECT t.*, u.display_name AS driver_display_name, u.phone AS driver_phone
+    `SELECT t.*, u.display_name AS driver_display_name, u.phone AS driver_phone,
+            u.rating_avg AS driver_rating_avg, u.rating_count AS driver_rating_count
      FROM trips t
      JOIN users u ON u.id = t.driver_id
      WHERE t.id = $1`,
@@ -380,6 +385,8 @@ export async function searchTrips(input: {
   origin: string;
   destination: string;
   date: string; // YYYY-MM-DD (IST calendar day)
+  /** When set, hide drivers blocked either way with this viewer. */
+  viewerUserId?: string;
 }) {
   const originNorm = normalizeCity(input.origin);
   const destNorm = normalizeCity(input.destination);
@@ -398,8 +405,21 @@ export async function searchTrips(input: {
     throw httpError(400, "Invalid date", ErrorCodes.VALIDATION_ERROR);
   }
 
+  const params: unknown[] = [originNorm, destNorm, start.toISOString(), end.toISOString()];
+  let blockClause = "";
+  if (input.viewerUserId) {
+    params.push(input.viewerUserId);
+    blockClause = `
+       AND NOT EXISTS (
+         SELECT 1 FROM user_blocks ub
+         WHERE (ub.blocker_id = $5 AND ub.blocked_id = t.driver_id)
+            OR (ub.blocker_id = t.driver_id AND ub.blocked_id = $5)
+       )`;
+  }
+
   const { rows } = await pool.query<TripRow>(
-    `SELECT t.*, u.display_name AS driver_display_name, u.phone AS driver_phone
+    `SELECT t.*, u.display_name AS driver_display_name, u.phone AS driver_phone,
+            u.rating_avg AS driver_rating_avg, u.rating_count AS driver_rating_count
      FROM trips t
      JOIN users u ON u.id = t.driver_id
      WHERE t.status = 'open'
@@ -407,8 +427,9 @@ export async function searchTrips(input: {
        AND t.destination_normalized = $2
        AND t.depart_at >= $3
        AND t.depart_at < $4
+       ${blockClause}
      ORDER BY t.depart_at ASC, t.fare_inr ASC`,
-    [originNorm, destNorm, start.toISOString(), end.toISOString()]
+    params
   );
   return rows.map(mapTrip);
 }

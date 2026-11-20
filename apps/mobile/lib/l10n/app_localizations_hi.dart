@@ -497,4 +497,76 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get sosDisclaimer =>
       'मुफ़्त सॉफ्ट-लॉन्च SOS — कोई पेड SMS नहीं। शेयर आपके फ़ोन की शेयर शीट इस्तेमाल करता है (व्हाट्सऐप, संदेश आदि)।';
+  @override
+  String get yourRating => 'आपकी रेटिंग';
+  @override
+  String get ratingCta => 'इस उपयोगकर्ता को रेट करें';
+  @override
+  String get ratingTitle => 'रेटिंग दें';
+  @override
+  String ratingSubtitle(String name) => '$name के साथ आपकी यात्रा कैसी रही?';
+  @override
+  String get ratingCommentOptional => 'टिप्पणी (वैकल्पिक)';
+  @override
+  String get ratingSubmit => 'रेटिंग भेजें';
+  @override
+  String get ratingSubmitting => 'भेज रहा है…';
+  @override
+  String get ratingSubmitted => 'धन्यवाद — रेटिंग सेव हो गई';
+  @override
+  String get ratingPickStars => '1 से 5 स्टार चुनें';
+  @override
+  String ratingYourStars(int stars) => 'आपने $stars★ दिए';
+  @override
+  String get reportOrBlock => 'रिपोर्ट या ब्लॉक';
+  @override
+  String get reportUser => 'उपयोगकर्ता रिपोर्ट करें';
+  @override
+  String reportUserSubtitle(String name) =>
+      '$name के साथ क्या गलत हुआ, बताएँ';
+  @override
+  String get reportReason => 'कारण';
+  @override
+  String get reportReasonHarassment => 'उत्पीड़न / गाली-गलौज';
+  @override
+  String get reportReasonUnsafe => 'असुरक्षित ड्राइविंग';
+  @override
+  String get reportReasonNoShow => 'नहीं आए';
+  @override
+  String get reportReasonSpam => 'स्पैम / नकली यात्रा';
+  @override
+  String get reportReasonFraud => 'धोखा / भुगतान समस्या';
+  @override
+  String get reportReasonOther => 'अन्य';
+  @override
+  String get reportDetailsOptional => 'विवरण (वैकल्पिक)';
+  @override
+  String get reportSubmit => 'रिपोर्ट भेजें';
+  @override
+  String get reportSubmitting => 'भेज रहा है…';
+  @override
+  String get reportSubmitted => 'रिपोर्ट समीक्षा के लिए भेज दी गई';
+  @override
+  String get reportPickReason => 'कारण चुनें';
+  @override
+  String get blockUser => 'ब्लॉक करें';
+  @override
+  String get blockUserHint =>
+      'वे आपकी यात्राएँ नहीं देखेंगे और आपके साथ बुक नहीं कर सकेंगे';
+  @override
+  String blockUserConfirm(String name) =>
+      '$name को ब्लॉक करें? आप एक-दूसरे की यात्राएँ या बुकिंग नहीं देखेंगे।';
+  @override
+  String get blockUserDone => 'उपयोगकर्ता ब्लॉक हो गया';
+  @override
+  String get unblockUser => 'अनब्लॉक';
+  @override
+  String get unblockUserDone => 'उपयोगकर्ता अनब्लॉक हो गया';
+  @override
+  String get blockedUsersTitle => 'ब्लॉक किए गए उपयोगकर्ता';
+  @override
+  String get blockedUsersSubtitle =>
+      'जिन्हें आपने ब्लॉक किया है, प्रबंधित करें';
+  @override
+  String get blockedUsersEmpty => 'आपने अभी तक किसी को ब्लॉक नहीं किया';
 }

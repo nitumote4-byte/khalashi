@@ -6,7 +6,7 @@ BlaBlaCar-style India carpool for **Nitin Mote Tours & Travel**.
 
 Stack: **Flutter** mobile · **Node (Express)** API · **PostgreSQL**.
 
-This repo includes **Phase 0–2** (auth + trips/book/cancel), **Phase 3 soft-launch harden**, **soft-launch gov ID verification** (ID photo + selfie + manual review — no DigiLocker/UIDAI / paid face-match), and **soft-launch SOS** (emergency contact + trip share + audit — no paid SMS). Still **no** UPI / paid KYC APIs / chat / ratings / deep admin UI.
+This repo includes **Phase 0–2** (auth + trips/book/cancel), **Phase 3 soft-launch harden**, **soft-launch gov ID verification** (ID photo + selfie + manual review — no DigiLocker/UIDAI / paid face-match), **soft-launch SOS** (emergency contact + trip share + audit — no paid SMS), and **soft-launch ratings + report/block**. Still **no** UPI / paid KYC APIs / chat / deep admin UI.
 
 ## Monorepo layout
 
@@ -113,7 +113,29 @@ curl -s -X POST -H "X-Admin-Secret: $ADMIN_SECRET" -H "Content-Type: application
 
 Mobile: Profile saves emergency contact; confirmed booking detail + open trip manage show a prominent SOS sheet (tel: contact, system share with cities/pickup/drop/time/phones + public URL, optional 112).
 
-**Not in v1 API:** UPI, DigiLocker, paid face-match, chat, ratings, paid SMS gateway. Offer Ride uses an in-app map pin
+### Soft-launch ratings + report/block
+
+After a **confirmed** booking once the trip has **started** (`depart_at` ≤ now) or is **completed**, either party can leave **1–5 stars** + optional comment about the other. Average rating shows on profile and trip cards when `rating_count > 0`.
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/ratings/booking/:bookingId` | Bearer | Eligibility + existing rating for this booking |
+| POST | `/ratings` | Bearer | `{ bookingId, stars, comment? }` |
+| POST | `/reports` | Bearer | `{ reportedUserId, reason, details?, tripId?, bookingId? }` |
+| GET | `/admin/reports` | `X-Admin-Secret` | List reports (`?status=open\|reviewed\|dismissed\|all`) |
+| POST | `/blocks` | Bearer | `{ userId }` — soft block |
+| DELETE | `/blocks/:userId` | Bearer | Unblock |
+| GET | `/blocks/mine` | Bearer | My blocked users |
+
+`reason`: `harassment` \| `unsafe_driving` \| `no_show` \| `spam` \| `fraud` \| `other`.
+
+**Block rules (soft launch):** blocked pairs cannot book each other; search hides the other party’s trips either way.
+
+```bash
+curl -s -H "X-Admin-Secret: $ADMIN_SECRET" "$API/admin/reports?status=open"
+```
+
+**Not in v1 API:** UPI, DigiLocker, paid face-match, chat, paid SMS gateway. Offer Ride uses an in-app map pin
 picker (flutter_map + free Esri/OSM tiles) for optional pickup/drop meeting points.
 
 ## Quick start — Mobile
@@ -127,7 +149,7 @@ flutter run
 Defaults to the live Railway API. For a local API:
 `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000` (Android emulator).
 
-Flows: language → phone OTP → home → **Find a ride** / **Offer a ride** (ID submit required) → search/book or post → my bookings / my trips → **Profile** (verification badge, emergency contact, HI/EN, Help & safety) → free cancel until departure. Soft-launch ID: rear-camera ID photo + optional ML Kit OCR autofill + front-camera selfie + manual review. Soft-launch SOS on active booking/trip. Cash-on-trip + safety disclaimers; HI + EN.
+Flows: language → phone OTP → home → **Find a ride** / **Offer a ride** (ID submit required) → search/book or post → my bookings / my trips → **Profile** (rating, verification badge, emergency contact, blocked users, HI/EN, Help & safety) → free cancel until departure. Soft-launch ID: rear-camera ID photo + optional ML Kit OCR autofill + front-camera selfie + manual review. Soft-launch SOS on active booking/trip. Soft-launch rate / report / block after trip start. Cash-on-trip + safety disclaimers; HI + EN.
 
 Replace stub WhatsApp/phone in `apps/mobile/lib/config/support_contacts.dart` before soft launch.
 
@@ -173,11 +195,11 @@ Deploy configs live in-repo (no secrets committed):
 | `NODE_ENV` | yes | `production` |
 | `PORT` | usually set by host | Host default is fine |
 | `MSG91_*` | no for soft launch | Leave unset while `OTP_PROVIDER=mock` |
-| `ADMIN_SECRET` | yes for ID review | Shared secret for `/admin/verifications/*` |
+| `ADMIN_SECRET` | yes for ID / report review | Shared secret for `/admin/verifications/*` and `/admin/reports` |
 | `UPLOAD_DIR` | optional | Default `/app/uploads` in Docker — mount a volume for persistence |
 | `ID_IMAGE_MAX_BYTES` | optional | Default `2097152` (2 MiB) |
 
-Migrations run automatically on container start (`docker-entrypoint.sh` → `node dist/db/migrate.js`). After merging selfie verification / SOS, **redeploy the API** so migrations `011`–`012` apply (and earlier ones if needed) and set `ADMIN_SECRET`.
+Migrations run automatically on container start (`docker-entrypoint.sh` → `node dist/db/migrate.js`). After merging ratings / report / block, **redeploy the API** so migration `013_ratings_reports_blocks` applies (and earlier ones if needed) and set `ADMIN_SECRET`.
 
 ### Point Flutter at the hosted API
 

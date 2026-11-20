@@ -3,9 +3,12 @@ import express from "express";
 import { env } from "./config/env";
 import { requestLog } from "./middleware/requestLog";
 import { authRouter } from "./routes/auth";
+import { blocksRouter } from "./routes/blocks";
 import { bookingsRouter } from "./routes/bookings";
 import { healthRouter } from "./routes/health";
 import { publicTripsRouter } from "./routes/publicTrips";
+import { ratingsRouter } from "./routes/ratings";
+import { reportsRouter } from "./routes/reports";
 import { sosRouter } from "./routes/sos";
 import { tripsRouter } from "./routes/trips";
 import { verificationRouter } from "./routes/verification";
@@ -26,6 +29,9 @@ app.use(verificationRouter);
 app.use(tripsRouter);
 app.use(bookingsRouter);
 app.use(sosRouter);
+app.use(ratingsRouter);
+app.use(reportsRouter);
+app.use(blocksRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ ok: false, error: "Not found", code: "NOT_FOUND" });
