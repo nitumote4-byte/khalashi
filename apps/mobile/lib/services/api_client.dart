@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import '../models/trip.dart';
+import '../models/verification.dart';
 import 'session_store.dart';
 
 class ApiClient {
@@ -181,6 +182,49 @@ class ApiClient {
     );
     final body = await _decode(res);
     return Booking.fromJson(body['booking'] as Map<String, dynamic>);
+  }
+
+  Future<VerificationInfo> getVerification() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/verification/me'),
+      headers: await _headers(),
+    );
+    final body = await _decode(res);
+    return VerificationInfo.fromJson(
+      body['verification'] as Map<String, dynamic>,
+    );
+  }
+
+  Future<VerificationStatus> getVerificationStatus() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/auth/me'),
+      headers: await _headers(),
+    );
+    final body = await _decode(res);
+    final user = body['user'] as Map<String, dynamic>?;
+    return VerificationStatusX.fromApi(user?['verificationStatus']?.toString());
+  }
+
+  Future<VerificationInfo> submitVerification({
+    required IdType idType,
+    required String fullName,
+    required String idNumber,
+    required String imageBase64,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/verification/submit'),
+      headers: await _headers(),
+      body: jsonEncode({
+        'idType': idType.apiValue,
+        'fullName': fullName,
+        'idNumber': idNumber,
+        'imageBase64': imageBase64,
+      }),
+    );
+    final body = await _decode(res);
+    return VerificationInfo.fromJson(
+      body['verification'] as Map<String, dynamic>,
+    );
   }
 }
 

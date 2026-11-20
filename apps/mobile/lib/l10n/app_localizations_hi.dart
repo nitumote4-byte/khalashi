@@ -364,4 +364,69 @@ class AppLocalizationsHi extends AppLocalizations {
   String get errorRateLimited => 'बहुत अनुरोध। थोड़ी देर बाद कोशिश करें।';
   @override
   String get errorUnauthorized => 'फिर साइन इन करें।';
+  @override
+  String get verifyIdTitle => 'पहचान सत्यापन';
+  @override
+  String get verifyIdCta => 'आईडी सत्यापित करें';
+  @override
+  String get verifyIdIntro =>
+      'आधार, ड्राइविंग लाइसेंस या वोटर आईडी का सामने वाला फ़ोटो लें। हम मैन्युअल जाँच करते हैं — DigiLocker नहीं। सवारी ढूँढना खुला रहता है; सवारी ऑफ़र करने के लिए आईडी जमा करनी होगी।';
+  @override
+  String get verifyIdType => 'आईडी प्रकार';
+  @override
+  String get idTypeAadhaar => 'आधार';
+  @override
+  String get idTypeDl => 'डीएल';
+  @override
+  String get idTypeVoter => 'वोटर';
+  @override
+  String get verifyPhotoHint => 'सरकारी आईडी का सामने वाला फ़ोटो लें';
+  @override
+  String get verifyCapture => 'कैमरा';
+  @override
+  String get verifyGallery => 'गैलरी';
+  @override
+  String get verifyFullName => 'आईडी पर नाम';
+  @override
+  String get verifyIdNumber => 'आईडी नंबर';
+  @override
+  String get verifyManualEditHint =>
+      'OCR भर सकता है — जमा करने से पहले जाँचें और सुधारें।';
+  @override
+  String get verifySubmit => 'समीक्षा के लिए जमा करें';
+  @override
+  String get verifySubmitted => 'जमा हो गया — समीक्षा लंबित';
+  @override
+  String get verifyNeedPhoto => 'पहले आईडी फ़ोटो लें या चुनें';
+  @override
+  String get verifyNeedFields => 'नाम और आईडी नंबर भरें';
+  @override
+  String get verifyBadgeUnverified => 'असत्यापित';
+  @override
+  String get verifyBadgePending => 'समीक्षा लंबित';
+  @override
+  String get verifyBadgeVerified => 'सत्यापित';
+  @override
+  String get verifyBadgeRejected => 'अस्वीकृत';
+  @override
+  String get verifyRequiredTitle => 'पहले आईडी सत्यापित करें';
+  @override
+  String get verifyRequiredBody =>
+      'सवारी ऑफ़र करने के लिए सरकारी आईडी फ़ोटो जमा करें। बिना इसके सवारी ढूँढना और बुक करना चलता रहेगा।';
+  @override
+  String get offerRideNeedsVerify =>
+      'पहले आईडी जमा करें — फिर ट्रिप पोस्ट करें';
+  @override
+  String get cameraPermissionDenied =>
+      'आईडी फ़ोटो के लिए कैमरा अनुमति चाहिए';
+  @override
+  String get ocrFilledHint => 'OCR ने जो पढ़ा भर दिया — कृपया जाँच लें।';
+  @override
+  String get ocrNoTextHint =>
+      'टेक्स्ट नहीं पढ़ा — नाम और आईडी नंबर खुद भरें।';
+  @override
+  String get ocrUnavailable =>
+      'यहाँ ऑन-डिवाइस OCR उपलब्ध नहीं — फ़ील्ड खुद भरें।';
+  @override
+  String get notNow => 'अभी नहीं';
 }

@@ -35,6 +35,14 @@ const envSchema = z.object({
   RATE_LIMIT_ACTION_WINDOW_SEC: z.coerce.number().default(60),
   MAX_TRIPS_PER_DRIVER_PER_DAY: z.coerce.number().default(8),
   MIN_DEPART_AHEAD_MINUTES: z.coerce.number().default(30),
+
+  // Soft-launch gov ID verification (photo + manual review)
+  // Admin: curl -H "X-Admin-Secret: $ADMIN_SECRET" …
+  ADMIN_SECRET: z.string().optional(),
+  // Local/Railway disk for ID photos (attach a Railway volume at this path for persistence).
+  UPLOAD_DIR: z.string().default("./uploads"),
+  // Max decoded image bytes (default 2 MiB).
+  ID_IMAGE_MAX_BYTES: z.coerce.number().default(2_097_152),
 });
 
 export type Env = z.infer<typeof envSchema>;
