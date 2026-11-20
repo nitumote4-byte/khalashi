@@ -8,6 +8,8 @@ export type AuthedRequest = Request & {
     phone: string;
     displayName: string | null;
     language: "en" | "hi";
+    emergencyContactName: string | null;
+    emergencyContactPhone: string | null;
   };
 };
 

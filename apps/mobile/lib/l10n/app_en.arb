@@ -240,5 +240,36 @@
   "ocrFilledHint": "OCR filled what it could — please confirm the fields.",
   "ocrNoTextHint": "Couldn’t read text — enter name and ID number manually.",
   "ocrUnavailable": "On-device OCR isn’t available here — enter fields manually.",
-  "notNow": "Not now"
+  "notNow": "Not now",
+  "emergencyContactTitle": "Emergency contact",
+  "emergencyContactSubtitle": "Saved for SOS — call this person and share your trip in one tap.",
+  "emergencyContactName": "Contact name",
+  "emergencyContactNameHint": "Family or friend",
+  "emergencyContactPhone": "Contact phone",
+  "emergencyContactSave": "Save emergency contact",
+  "emergencyContactSaving": "Saving…",
+  "emergencyContactSaved": "Emergency contact saved",
+  "emergencyContactCleared": "Emergency contact cleared",
+  "emergencyContactClear": "Clear contact",
+  "emergencyContactNeedBoth": "Enter both name and phone, or clear both.",
+  "emergencyContactInvalidPhone": "Enter a valid 10-digit Indian mobile number.",
+  "sosButton": "SOS",
+  "sosTitle": "Need help now?",
+  "sosSubtitle": "Call your emergency contact, share this trip, or dial India emergency 112. Khalashi is not an emergency response service.",
+  "sosCallContact": "Call emergency contact",
+  "sosCallContactNamed": "Call {name}",
+  "@sosCallContactNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sosNoContact": "Add an emergency contact in Profile first.",
+  "sosShareTrip": "Share trip summary",
+  "sosShareSubject": "Khalashi trip",
+  "sosShareHeadline": "Khalashi trip — I'm on this ride:",
+  "sosShareFooter": "In danger, call 112. This is a status share, not live tracking.",
+  "sosCall112": "Call 112 (India emergency)",
+  "sosDisclaimer": "Free soft-launch SOS — no paid SMS. Share uses your phone’s share sheet (WhatsApp, Messages, etc.)."
 }

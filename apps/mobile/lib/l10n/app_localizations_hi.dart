@@ -443,4 +443,58 @@ class AppLocalizationsHi extends AppLocalizations {
       'यहाँ ऑन-डिवाइस OCR उपलब्ध नहीं — फ़ील्ड खुद भरें।';
   @override
   String get notNow => 'अभी नहीं';
+  @override
+  String get emergencyContactTitle => 'आपातकालीन संपर्क';
+  @override
+  String get emergencyContactSubtitle =>
+      'SOS के लिए सेव — एक टैप में कॉल करें और यात्रा साझा करें।';
+  @override
+  String get emergencyContactName => 'संपर्क का नाम';
+  @override
+  String get emergencyContactNameHint => 'परिवार या मित्र';
+  @override
+  String get emergencyContactPhone => 'संपर्क फ़ोन';
+  @override
+  String get emergencyContactSave => 'आपातकालीन संपर्क सेव करें';
+  @override
+  String get emergencyContactSaving => 'सेव हो रहा है…';
+  @override
+  String get emergencyContactSaved => 'आपातकालीन संपर्क सेव हो गया';
+  @override
+  String get emergencyContactCleared => 'आपातकालीन संपर्क हटा दिया';
+  @override
+  String get emergencyContactClear => 'संपर्क हटाएँ';
+  @override
+  String get emergencyContactNeedBoth =>
+      'नाम और फ़ोन दोनों भरें, या दोनों खाली छोड़ें।';
+  @override
+  String get emergencyContactInvalidPhone =>
+      'मान्य 10 अंकों का भारतीय मोबाइल नंबर दर्ज करें।';
+  @override
+  String get sosButton => 'SOS';
+  @override
+  String get sosTitle => 'अभी मदद चाहिए?';
+  @override
+  String get sosSubtitle =>
+      'अपने आपातकालीन संपर्क को कॉल करें, यह यात्रा साझा करें, या भारत आपातकाल 112 डायल करें। खलाशी आपातकालीन प्रतिक्रिया सेवा नहीं है।';
+  @override
+  String get sosCallContact => 'आपातकालीन संपर्क कॉल करें';
+  @override
+  String sosCallContactNamed(String name) => '$name को कॉल करें';
+  @override
+  String get sosNoContact => 'पहले प्रोफ़ाइल में आपातकालीन संपर्क जोड़ें।';
+  @override
+  String get sosShareTrip => 'यात्रा सारांश साझा करें';
+  @override
+  String get sosShareSubject => 'खलाशी यात्रा';
+  @override
+  String get sosShareHeadline => 'खलाशी यात्रा — मैं इस सवारी पर हूँ:';
+  @override
+  String get sosShareFooter =>
+      'खतरे में हों तो 112 कॉल करें। यह स्थिति साझा है, लाइव ट्रैकिंग नहीं।';
+  @override
+  String get sosCall112 => '112 कॉल करें (भारत आपातकाल)';
+  @override
+  String get sosDisclaimer =>
+      'मुफ़्त सॉफ्ट-लॉन्च SOS — कोई पेड SMS नहीं। शेयर आपके फ़ोन की शेयर शीट इस्तेमाल करता है (व्हाट्सऐप, संदेश आदि)।';
 }

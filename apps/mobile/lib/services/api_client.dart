@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import '../models/trip.dart';
+import '../models/user_profile.dart';
 import '../models/verification.dart';
 import 'session_store.dart';
 
@@ -182,6 +183,48 @@ class ApiClient {
     );
     final body = await _decode(res);
     return Booking.fromJson(body['booking'] as Map<String, dynamic>);
+  }
+
+  Future<UserProfile> getMe() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/auth/me'),
+      headers: await _headers(),
+    );
+    final body = await _decode(res);
+    return UserProfile.fromJson(body['user'] as Map<String, dynamic>);
+  }
+
+  Future<UserProfile> updateEmergencyContact({
+    String? name,
+    String? phone,
+  }) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/auth/emergency-contact'),
+      headers: await _headers(),
+      body: jsonEncode({
+        'emergencyContactName': name,
+        'emergencyContactPhone': phone,
+      }),
+    );
+    final body = await _decode(res);
+    return UserProfile.fromJson(body['user'] as Map<String, dynamic>);
+  }
+
+  Future<void> logSos({
+    required String tripId,
+    String? bookingId,
+    String action = 'pressed',
+  }) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/sos'),
+      headers: await _headers(),
+      body: jsonEncode({
+        'tripId': tripId,
+        if (bookingId != null) 'bookingId': bookingId,
+        'action': action,
+      }),
+    );
+    await _decode(res);
   }
 
   Future<VerificationInfo> getVerification() async {

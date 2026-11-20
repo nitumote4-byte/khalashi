@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/trip.dart';
+import '../models/user_profile.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../theme/khalashi_theme.dart';
 import '../utils/format.dart';
 import '../widgets/async_state.dart';
+import '../widgets/sos_sheet.dart';
 import 'help_screen.dart';
 
 class BookingDetailScreen extends StatefulWidget {
@@ -27,14 +29,45 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   late final ApiClient _api = ApiClient(sessionStore: widget.sessionStore);
   late Future<Booking> _future;
   bool _cancelling = false;
+  UserProfile? _profile;
 
   @override
   void initState() {
     super.initState();
     _future = _api.getBooking(widget.bookingId);
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile = await _api.getMe();
+      if (!mounted) return;
+      setState(() => _profile = profile);
+    } catch (_) {
+      /* SOS still works without contact */
+    }
   }
 
   void _reload() => setState(() => _future = _api.getBooking(widget.bookingId));
+
+  Future<void> _openSos(Booking b) async {
+    final trip = b.trip;
+    if (trip == null) return;
+    await showSosSheet(
+      context: context,
+      api: _api,
+      tripId: trip.id,
+      bookingId: b.id,
+      origin: trip.origin,
+      destination: trip.destination,
+      departAt: trip.departAt,
+      pickupPoint: trip.pickupPoint,
+      dropoffPoint: trip.dropoffPoint,
+      counterpartPhone: trip.driverPhone,
+      counterpartLabel: AppLocalizations.of(context).driver,
+      profile: _profile,
+    );
+  }
 
   Future<void> _cancel() async {
     final l10n = AppLocalizations.of(context);
@@ -132,6 +165,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     ),
               ),
               const SizedBox(height: 24),
+              if (b.isConfirmed && trip != null) ...[
+                SosButton(onPressed: () => _openSos(b)),
+                const SizedBox(height: 12),
+              ],
               if (b.canCancel)
                 OutlinedButton(
                   onPressed: _cancelling ? null : _cancel,

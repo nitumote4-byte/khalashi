@@ -1,8 +1,16 @@
 import { Router } from "express";
 import { z } from "zod";
 import { env } from "../config/env";
+import { requireAuth, type AuthedRequest } from "../middleware/auth";
 import { clientIp, rateLimit } from "../middleware/rateLimit";
-import { getSession, logout, normalizePhone, requestOtp, verifyOtp } from "../services/authService";
+import {
+  getSession,
+  logout,
+  normalizePhone,
+  requestOtp,
+  updateEmergencyContact,
+  verifyOtp,
+} from "../services/authService";
 import { getUserVerificationStatus } from "../services/verificationService";
 import { ErrorCodes, httpError } from "../utils/errors";
 import { sendError } from "../utils/respond";
@@ -18,10 +26,34 @@ const verifyBody = z.object({
   code: z.string().min(4).max(8),
 });
 
+const emergencyBody = z.object({
+  emergencyContactName: z.string().max(120).nullable().optional(),
+  emergencyContactPhone: z.string().max(15).nullable().optional(),
+});
+
 function bearer(req: { headers: { authorization?: string } }): string | undefined {
   const h = req.headers.authorization;
   if (!h?.startsWith("Bearer ")) return undefined;
   return h.slice(7);
+}
+
+function publicUser(user: {
+  id: string;
+  phone: string;
+  displayName: string | null;
+  language: "en" | "hi";
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+}, verificationStatus?: string) {
+  return {
+    id: user.id,
+    phone: user.phone,
+    displayName: user.displayName,
+    language: user.language,
+    emergencyContactName: user.emergencyContactName,
+    emergencyContactPhone: user.emergencyContactPhone,
+    ...(verificationStatus ? { verificationStatus } : {}),
+  };
 }
 
 const otpPhoneLimit = rateLimit({
@@ -75,14 +107,22 @@ authRouter.get("/auth/me", async (req, res) => {
     const verificationStatus = await getUserVerificationStatus(auth.user.id);
     res.json({
       ok: true,
-      user: {
-        id: auth.user.id,
-        phone: auth.user.phone,
-        displayName: auth.user.displayName,
-        language: auth.user.language,
-        verificationStatus,
-      },
+      user: publicUser(auth.user, verificationStatus),
     });
+  } catch (err) {
+    sendError(res, err);
+  }
+});
+
+authRouter.put("/auth/emergency-contact", requireAuth, async (req, res) => {
+  try {
+    const user = (req as AuthedRequest).user;
+    const body = emergencyBody.parse(req.body ?? {});
+    const updated = await updateEmergencyContact(user.id, {
+      name: body.emergencyContactName ?? null,
+      phone: body.emergencyContactPhone ?? null,
+    });
+    res.json({ ok: true, user: publicUser(updated) });
   } catch (err) {
     sendError(res, err);
   }

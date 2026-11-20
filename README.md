@@ -6,7 +6,7 @@ BlaBlaCar-style India carpool for **Nitin Mote Tours & Travel**.
 
 Stack: **Flutter** mobile · **Node (Express)** API · **PostgreSQL**.
 
-This repo includes **Phase 0–2** (auth + trips/book/cancel), **Phase 3 soft-launch harden**, and **soft-launch gov ID verification** (ID photo + selfie + manual review — no DigiLocker/UIDAI / paid face-match). Still **no** UPI / paid KYC APIs / chat / ratings / deep admin UI.
+This repo includes **Phase 0–2** (auth + trips/book/cancel), **Phase 3 soft-launch harden**, **soft-launch gov ID verification** (ID photo + selfie + manual review — no DigiLocker/UIDAI / paid face-match), and **soft-launch SOS** (emergency contact + trip share + audit — no paid SMS). Still **no** UPI / paid KYC APIs / chat / ratings / deep admin UI.
 
 ## Monorepo layout
 
@@ -102,7 +102,18 @@ curl -s -X POST -H "X-Admin-Secret: $ADMIN_SECRET" -H "Content-Type: application
   -d '{}' "$API/admin/verifications/<id>/approve"
 ```
 
-**Not in v1 API:** UPI, DigiLocker, paid face-match, chat, ratings, SOS. Offer Ride uses an in-app map pin
+### Soft-launch SOS + emergency share (no paid SMS)
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| PUT | `/auth/emergency-contact` | Bearer | Save/clear `{ emergencyContactName, emergencyContactPhone }` |
+| GET | `/auth/me` | Bearer | Includes emergency contact fields |
+| POST | `/sos` | Bearer | Audit `{ tripId, bookingId?, action }` — `pressed` \| `call_contact` \| `share` \| `call_112` |
+| GET | `/public/trips/:id` | none | Read-only trip status (JSON; `?format=html` or `Accept: text/html` for page) |
+
+Mobile: Profile saves emergency contact; confirmed booking detail + open trip manage show a prominent SOS sheet (tel: contact, system share with cities/pickup/drop/time/phones + public URL, optional 112).
+
+**Not in v1 API:** UPI, DigiLocker, paid face-match, chat, ratings, paid SMS gateway. Offer Ride uses an in-app map pin
 picker (flutter_map + free Esri/OSM tiles) for optional pickup/drop meeting points.
 
 ## Quick start — Mobile
@@ -116,7 +127,7 @@ flutter run
 Defaults to the live Railway API. For a local API:
 `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000` (Android emulator).
 
-Flows: language → phone OTP → home → **Find a ride** / **Offer a ride** (ID submit required) → search/book or post → my bookings / my trips → **Profile** (verification badge, HI/EN, Help & safety) → free cancel until departure. Soft-launch ID: rear-camera ID photo + optional ML Kit OCR autofill + front-camera selfie + manual review. Cash-on-trip + safety disclaimers; HI + EN.
+Flows: language → phone OTP → home → **Find a ride** / **Offer a ride** (ID submit required) → search/book or post → my bookings / my trips → **Profile** (verification badge, emergency contact, HI/EN, Help & safety) → free cancel until departure. Soft-launch ID: rear-camera ID photo + optional ML Kit OCR autofill + front-camera selfie + manual review. Soft-launch SOS on active booking/trip. Cash-on-trip + safety disclaimers; HI + EN.
 
 Replace stub WhatsApp/phone in `apps/mobile/lib/config/support_contacts.dart` before soft launch.
 
@@ -136,6 +147,7 @@ Replace stub WhatsApp/phone in `apps/mobile/lib/config/support_contacts.dart` be
 | `009_trip_route_stats.sql` | route distance / duration |
 | `010_id_verification.sql` | users.verification_status + id_verifications |
 | `011_id_verification_selfie.sql` | id_verifications.selfie_path + selfie_mime |
+| `012_emergency_contact_sos.sql` | users emergency contact + sos_events audit |
 
 ## Deploy (hosted API + Postgres)
 
@@ -165,7 +177,7 @@ Deploy configs live in-repo (no secrets committed):
 | `UPLOAD_DIR` | optional | Default `/app/uploads` in Docker — mount a volume for persistence |
 | `ID_IMAGE_MAX_BYTES` | optional | Default `2097152` (2 MiB) |
 
-Migrations run automatically on container start (`docker-entrypoint.sh` → `node dist/db/migrate.js`). After merging selfie verification, **redeploy the API** so migration `011_id_verification_selfie.sql` applies (and `010` if not yet applied) and set `ADMIN_SECRET`.
+Migrations run automatically on container start (`docker-entrypoint.sh` → `node dist/db/migrate.js`). After merging selfie verification / SOS, **redeploy the API** so migrations `011`–`012` apply (and earlier ones if needed) and set `ADMIN_SECRET`.
 
 ### Point Flutter at the hosted API
 
